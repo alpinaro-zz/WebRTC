@@ -18,5 +18,5 @@ m    	 Mode      	 player    	 publisher or player
 u    	 Show GUI  	 true      	 true or false               
 p    	 Period    	 0         	 frame period to save as png 
 v    	 Verbose   	 false     	 true or false 
-n        Count       1           Number of player/publisher connctions 
+n        Count       1           Number of player/publisher connctions  
 ```
