@@ -1,0 +1,41 @@
+<assembly
+	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+	<id>release</id>
+	<formats>
+		<format>zip</format>
+	</formats>
+	<files>
+		<file>
+			<source>${project.build.directory}/${project.artifactId}-${project.version}.jar</source>
+			<outputDirectory></outputDirectory>
+			<destName>webrtc-test.jar</destName>
+		</file>
+		<file>
+			<source>${project.basedir}/run.sh</source>
+			<outputDirectory></outputDirectory>
+		</file>
+	</files>
+	<fileSets>
+		<fileSet>
+			<directory>${project.build.directory}/libs</directory>
+			<outputDirectory>libs</outputDirectory>
+			<excludes>
+				<exclude>ffmpeg*linux-x86.jar</exclude>
+				<exclude>ffmpeg*linux-armhf.jar</exclude> 
+				<exclude>ffmpeg*android*.jar</exclude>
+				<exclude>ffmpeg*ppc64le.jar</exclude>
+				<exclude>ffmpeg*windows*.jar</exclude>
+				<exclude>ffmpeg*macos*.jar</exclude>
+			</excludes>
+		</fileSet>
+		<fileSet>
+			<directory>${project.basedir}/src/main/native</directory>
+			<outputDirectory>libs/native</outputDirectory>
+			<excludes>
+				<exclude>*debug</exclude>
+			</excludes>
+		</fileSet>
+	</fileSets>
+</assembly>
