@@ -5,7 +5,7 @@ WebRTCTest Tool is a java project for testing Ant Media Server webrtc capabiliti
 * WebRTCTest two options with UI or without UI. (-u flag determines the UI od/off)
 * You can save recieved(in player mode) or published(in publisher mode) frames as png. (-p flag determines the saving periof of frames. If you set 100 it saves every 100 frames.)
 
-It can be run from coomand promt with the following options.
+It can be run from command promt with the following options.
 ```
 Flag 	 Name      	 Default   	 Description                 
 ---- 	 ----      	 -------   	 -----------                 
