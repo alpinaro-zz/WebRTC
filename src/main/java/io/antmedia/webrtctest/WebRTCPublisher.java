@@ -53,20 +53,10 @@ public class WebRTCPublisher extends StreamManager{
 
 	class VideoSender implements Runnable {
 		int lastSentPacket = 0;
-		int count = 0;
-		int totalDt = 0;
-		long last = System.currentTimeMillis();
-
 
 		@Override
 		public void run() {
-			long now = System.currentTimeMillis();
-			totalDt += (now - last);
-			last = now;
-			
-			if((count++)%Settings.instance.frameLogPeriod == 0) {
-				logger.info("sent fps total time/count:{}/{}={}",totalDt, count, (totalDt/count));
-			}
+			update();
 			
 			if(lastSentPacket < reader.videoFrames.size()) {
 				MP4Reader.Frame frame = reader.videoFrames.get(lastSentPacket++);

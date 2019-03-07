@@ -55,6 +55,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 	private MediaConstraints audioConstraints;
 	private MediaConstraints sdpMediaConstraints;
 	private StreamManager streamManager;
+
 	private VirtualVideoEncoderFactory encoderFactory;
 	private CapturerObserver capturerObserver;
 	private WebRtcAudioRecord audioRecord;
@@ -75,8 +76,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 	{
 		this.setStreamId(streamId);
 		String unsecure = "ws://"+Settings.instance.webSockAdr+":5080/WebRTCAppEE/websocket";
-		String secure = "ws://"+Settings.instance.webSockAdr+":5088/WebRTCAppEE/websocket";
-		//String secure = "wss://"+Settings.instance.webSockAdr+":5443/WebRTCAppEE/websocket";
+		String secure = "wss://"+Settings.instance.webSockAdr+":5443/WebRTCAppEE/websocket";
+		
 
 		URI uri = null;
 
@@ -86,6 +87,9 @@ public class WebRTCManager implements Observer, SdpObserver {
 			e.printStackTrace();
 		}
 
+		System.out.println(uri);
+
+		
 		websocket = new WebsocketClientEndpoint(uri);
 		websocket.setManager(this);
 	}
@@ -505,6 +509,10 @@ public class WebRTCManager implements Observer, SdpObserver {
 	public void setListener(IWebRTCEventListerner listener) {
 		this.listener = listener;
 
+	}
+	
+	public StreamManager getStreamManager() {
+		return streamManager;
 	}
 
 }

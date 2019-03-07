@@ -15,10 +15,14 @@ public class Starter implements IWebRTCEventListerner
 	ArrayList<WebRTCManager> managers = new ArrayList<>();
 	private MP4Reader reader;
 	
+	StatManager statManager = new StatManager();
+
+	
 	int startingIndex = 0;
 
 	public Starter(String[] args) {
 		Settings.instance.parse(args);
+		
 		
 
 		if(Settings.instance.mode == Mode.PUBLISHER) {
@@ -45,11 +49,14 @@ public class Starter implements IWebRTCEventListerner
 
 			streamManager.setManager(webRTCManager);
 			webRTCManager.setStreamManager(streamManager);
+			
 
 			webRTCManager.setListener(this);
 
 			managers.add(webRTCManager);
 		}
+		
+		statManager.start();
 
 	}
 
@@ -74,6 +81,9 @@ public class Starter implements IWebRTCEventListerner
 	public void onCompleted() {
 		
 		System.out.println("on completed");
+		
+		statManager.addStreamManager(managers.get(startingIndex-1).getStreamManager());
+
 		
 		if(startingIndex < Settings.instance.load) {
 			start();

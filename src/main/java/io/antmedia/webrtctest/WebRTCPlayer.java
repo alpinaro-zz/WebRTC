@@ -19,9 +19,6 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 	OpusPlayer aPlayer;
 	H264Player vPlayer;
 	private Object audioCapturerFuture;
-	int count = 0;
-	int totalDt = 0;
-	long last = System.currentTimeMillis();
 
 	@Override
 	public void start() {
@@ -41,18 +38,12 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 
 	@Override
 	public void onEncodedImage(EncodedImage frame) {
-		long now = System.currentTimeMillis();
-		totalDt += (now - last);
-		last = now;
-		
-		if((count++)%Settings.instance.frameLogPeriod == 0) {
-			logger.info("received fps total time/count:{}/{}={}",totalDt, count, (totalDt/count));
-		}
-		
+		update();
 		if(Settings.instance.useUI) {
 			vPlayer.play(frame);
 		}
 	}
+	
 
 	class AudioCapturer implements Runnable{
 
