@@ -27,7 +27,6 @@
 				<exclude>ffmpeg*android*.jar</exclude>
 				<exclude>ffmpeg*ppc64le.jar</exclude>
 				<exclude>ffmpeg*windows*.jar</exclude>
-				<exclude>ffmpeg*macos*.jar</exclude>
 			</excludes>
 		</fileSet>
 		<fileSet>

@@ -331,8 +331,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 		return capturerObserver;
 	}
 
-	private void stop() {
-		// TODO Auto-generated method stub
+	public void stop() {
+		peerConnection.close();
 
 	}
 
@@ -408,6 +408,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 		else if (newState == IceConnectionState.DISCONNECTED || newState == IceConnectionState.FAILED
 				|| newState == IceConnectionState.CLOSED) 
 		{
+			streamManager.stop();
 			stop();
 		}
 
