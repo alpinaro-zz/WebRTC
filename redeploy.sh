@@ -7,7 +7,6 @@ if [ $OUT -ne 0 ]; then
 fi
 
 SRC=target/webrtctest-0.0.1-SNAPSHOT.jar
-DEST=/home/burak/test/webrtctest/webrtc-test.jar
+DEST=~/test/webrtctest/webrtc-test.jar
 
 cp $SRC $DEST
-

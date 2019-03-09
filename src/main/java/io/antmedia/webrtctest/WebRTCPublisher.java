@@ -29,13 +29,14 @@ public class WebRTCPublisher extends StreamManager{
 
 	@Override
 	public void start() {
+		super.start();
 		if(started) {
 			return;
 		}
 		i420Buffer = JavaI420Buffer.allocate(reader.width, reader.height);
 
 		videoSenderFuture = scheduledExecutorService.scheduleAtFixedRate(new VideoSender(), 200, 1000/fps, TimeUnit.MILLISECONDS);
-		audioSenderFuture = scheduledExecutorService.scheduleAtFixedRate(new AudioSender(), 200, 10, TimeUnit.MILLISECONDS);
+		audioSenderFuture = scheduledExecutorService.scheduleAtFixedRate(new AudioSender(), 200, 20, TimeUnit.MILLISECONDS);
 
 		started  = true;
 	}
@@ -47,6 +48,7 @@ public class WebRTCPublisher extends StreamManager{
 
 	@Override
 	public void stop() {
+		super.stop();
 		stopVideo();
 		stopAudio();
 	}
@@ -91,10 +93,18 @@ public class WebRTCPublisher extends StreamManager{
 	}
 
 	public void stopAudio() {
+		logger.info("Stopping audio streaming");
 		audioSenderFuture.cancel(true);
+		if (videoSenderFuture.isCancelled()) {
+			manager.stop();
+		}
 	}
 
 	public void stopVideo() {
+		logger.info("Stopping video streaming");
 		videoSenderFuture.cancel(true);
+		if (audioSenderFuture.isCancelled()) {
+			manager.stop();
+		}
 	}
 }

@@ -22,6 +22,7 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 
 	@Override
 	public void start() {
+		super.start();
 		manager.getDecoder().subscribe(this);
 		running = true;
 		if(Settings.instance.useUI) {
@@ -33,6 +34,8 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 
 	@Override
 	public void stop() {
+		super.stop();
+		logger.info("WebRTCPlayer is stopping");
 		running = false;
 	}
 
@@ -49,7 +52,8 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 
 		@Override
 		public void run() {
-			while(running) {
+			while(running) 
+			{	
 				ByteBuffer playoutData = manager.getAudioTrack().getPlayoutData();
 				int readSizeInBytes = manager.getAudioTrack().getReadSizeInBytes();
 				byte[] audioData = new byte[readSizeInBytes];
@@ -58,7 +62,6 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 
 				aPlayer.play(audioData);
 			}
-
 		}
 
 	}
@@ -70,7 +73,6 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 			vPlayer = new H264Player();
 			vPlayer.init(width, height);
 		}
-		
 	}
 
 }

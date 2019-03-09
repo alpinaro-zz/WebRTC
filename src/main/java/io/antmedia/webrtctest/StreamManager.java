@@ -1,14 +1,21 @@
 package io.antmedia.webrtctest;
 
 public abstract class StreamManager {
-	WebRTCManager manager;
+	protected WebRTCManager manager;
 	long count = 0;
 	long totalDt = 0;
 	long last;
 	boolean firstFrame = true;
+	private boolean isRunning;
+	private boolean isStarted = false;
 
-	public void start() {}
-	public void stop() {}
+	public void start() { 
+		isStarted = true;
+		isRunning = true; 
+	}
+	public void stop() { 
+		isRunning = false; 
+	}
 
 	public void setManager(WebRTCManager manager) {
 		this.manager = manager;
@@ -33,5 +40,13 @@ public abstract class StreamManager {
 			count++;
 		}
 		last = now;
+	}
+	
+	public boolean isRunning() {
+		return isRunning;
+	}
+	
+	public boolean isStarted() {
+		return isStarted;
 	}
 }

@@ -16,21 +16,25 @@ public class StatManager {
 	ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(3);
 	private Logger logger = LoggerFactory.getLogger(StatManager.class);
 
-
+	private boolean streamsRunning = true;
+	
 	public void start() {
-		//ScheduledFuture<?> logFuture = scheduledExecutorService.scheduleAtFixedRate(() -> logStats(), 2000, 2000, TimeUnit.MILLISECONDS);
 
 		new Thread() {
 			@Override
 			public void run() {
 				while (true) {
+					
 					try {
 						sleep(2000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 					logStats();
-					super.run();
+					if (!streamsRunning) {
+						logger.info("Seems all streams are stopped and breaking the stats loop");
+						break;
+					}
 				}
 			}
 		}.start();
@@ -42,11 +46,24 @@ public class StatManager {
 		int min = Integer.MAX_VALUE;
 		int max = Integer.MIN_VALUE;
 		int mean = 0;
-		for (StreamManager streamManager : streamManagers) {
+		
+		boolean streamsRunningLocal = false;
+		for (StreamManager streamManager : streamManagers) 
+		{
+			
+			if (!streamManager.isStarted() ||   //if stream is not started, assume that it is running
+					(streamManager.isRunning() && !streamsRunningLocal)) {
+				//if one stream is running, no need to enter again
+				streamsRunningLocal = true;
+			}
 			int fp = streamManager.getFramePeriod();
 			min = min < fp ? min : fp;
 			max = max < fp ? fp : max;
 			total += fp;
+		}
+		//if all stream is finished, change the global flag 
+		if (!streamsRunningLocal) {
+			streamsRunning = false;
 		}
 		mean = (int) (total/streamManagers.size());
 

@@ -56,6 +56,7 @@ public class Starter implements IWebRTCEventListerner
 			managers.add(webRTCManager);
 		}
 		
+		
 		statManager.start();
 
 	}
@@ -75,6 +76,7 @@ public class Starter implements IWebRTCEventListerner
 		System.out.println(Arrays.toString(args));
 		Starter starter = new Starter(args);
 		starter.start();
+		System.out.println("Leaving main method");
 	}
 
 	@Override
@@ -84,7 +86,6 @@ public class Starter implements IWebRTCEventListerner
 		
 		statManager.addStreamManager(managers.get(startingIndex-1).getStreamManager());
 
-		
 		if(startingIndex < Settings.instance.load) {
 			start();
 		}
