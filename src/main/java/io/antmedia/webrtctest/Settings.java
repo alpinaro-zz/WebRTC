@@ -8,7 +8,7 @@ public class Settings {
 	String streamSource = "camera";
 	Mode mode = Mode.PLAYER;
 	boolean useUI = true;
-	int period = 0;
+	int port = 5080;
 	boolean verbose = false;
 	boolean isSequre = false;
 	int load = 1;
@@ -27,7 +27,7 @@ public class Settings {
 	    System.out.println("f    \t File Name \t camera    \t media file in same directory");
 	    System.out.println("m    \t Mode      \t player    \t publisher or player         ");
 	    System.out.println("u    \t Show GUI  \t true      \t true or false               ");
-	    System.out.println("p    \t Period    \t 0         \t frame period to save as png ");
+	    System.out.println("p    \t Port      \t 5080      \t websocket port number       ");
 	    System.out.println("v    \t Verbose   \t false     \t true or false               ");
 	    System.out.println("n    \t Load Size \t 1         \t number of load              ");
 	}
@@ -70,8 +70,8 @@ public class Settings {
 	        useUI = Boolean.parseBoolean(strUI);
 	    }
 	    else if(flag.charAt(1) == 'p') {
-	        String strPeriod = value;
-	        period = Integer.parseInt(strPeriod);
+	        String strPort = value;
+	        port = Integer.parseInt(strPort);
 	    }
 	    else if(flag.charAt(1) == 'v') {
 	        String verb = value;
@@ -108,7 +108,7 @@ public class Settings {
 	    System.out.println("- stream source:" + streamSource);
 	    System.out.println("- mode:" + mode);
 	    System.out.println("- use ui:" + useUI);
-	    System.out.println("- period:" + period);
+	    System.out.println("- port:" + port);
 	    System.out.println("- verbose:" + verbose);
 	    System.out.println("- load:" + load);
 	}

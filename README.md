@@ -22,9 +22,9 @@ l    	 Label     	 nolabel   	 window lable
 i    	 Stream Id 	 myStream  	 id for stream               
 m    	 Mode      	 player    	 publisher or player         
 u    	 Show GUI  	 true      	 true or false               
-p    	 Period    	 0         	 frame period to save as png 
+p    	 Port      	 5080      	 websocket port number 
 v    	 Verbose   	 false     	 true or false 
-n        Count   	 1         	 Number of player/publisher connctions   
+n    	 Count     	 1         	 Number of player/publisher connctions 
 ```
 
 *File should be in mp4 format and h264, opus encoded

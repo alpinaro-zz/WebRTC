@@ -75,8 +75,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 	public WebRTCManager(String streamId) 
 	{
 		this.setStreamId(streamId);
-		String unsecure = "ws://"+Settings.instance.webSockAdr+":5080/WebRTCAppEE/websocket";
-		String secure = "wss://"+Settings.instance.webSockAdr+":5443/WebRTCAppEE/websocket";
+		String unsecure = "ws://"+Settings.instance.webSockAdr+":"+Settings.instance.port+"/WebRTCAppEE/websocket";
+		String secure = "wss://"+Settings.instance.webSockAdr+":"+Settings.instance.port+"/WebRTCAppEE/websocket";
 		
 
 		URI uri = null;
