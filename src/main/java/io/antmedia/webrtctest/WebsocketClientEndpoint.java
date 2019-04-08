@@ -2,15 +2,10 @@ package io.antmedia.webrtctest;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
 
-import javax.annotation.Nonnull;
 import javax.websocket.ClientEndpoint;
-import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider;
 import javax.websocket.EndpointConfig;
-import javax.websocket.MessageHandler;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -18,6 +13,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
+import org.glassfish.tyrus.client.ClientManager;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.slf4j.Logger;
@@ -37,26 +33,30 @@ public class WebsocketClientEndpoint {
 	WebRTCManager webrtcManager;
 	private Session session;
 	private URI uri;
+	private ClientManager websocketClient;
 
 	public WebsocketClientEndpoint(URI endpointURI) {
 		this.uri = endpointURI;
 	}
 
 	public void connect() {
-		System.out.println("connect");
-
 		try {
-			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-			container.connectToServer(this, uri);
+			websocketClient = (ClientManager) ContainerProvider.getWebSocketContainer();
+			websocketClient.asyncConnectToServer(this, uri);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
+	public void close() {
+		websocketClient.shutdown();
+	}
+	
+	
 	@OnOpen
 	public void onOpen(Session session, EndpointConfig config)
 	{
-		logger.info("websocket opened");
+		logger.info("websocket opened {}", this.hashCode());
 		this.session = session;
 		
 		if(Settings.instance.mode == Mode.PUBLISHER) {
@@ -69,17 +69,16 @@ public class WebsocketClientEndpoint {
 
 	@OnClose
 	public void onClose(Session session) {
-
+		logger.info("websocket closed {}", this.hashCode());
 	}
 
 	@OnError
 	public void onError(Session session, Throwable throwable) {
-
+		logger.info("websocket onError {}", this.hashCode());
 	}
 
 	@OnMessage
 	public void onMessage(Session session, String message) {
-		System.out.println(message);
 		try {
 
 			if (message == null) {
@@ -114,6 +113,11 @@ public class WebsocketClientEndpoint {
 				processTakeCandidateCommand(jsonObject, session.getId(), streamId);
 			}
 			else if (cmd.equals(WebSocketConstants.STOP_COMMAND)) {
+				
+			}
+			else if (cmd.equals(WebSocketConstants.PLAY_FINISHED)) {
+				logger.info("play finished received from websocket {}", this.hashCode());
+				webrtcManager.stop();
 			}
 			else if (cmd.equals(WebSocketConstants.ERROR_COMMAND)) {
 			}

@@ -38,11 +38,6 @@ public class VirtualH264Decoder implements VideoDecoder {
 				i420Buffer = null;
 			}
 	 		i420Buffer = JavaI420Buffer.allocate(settings.width, settings.height);
-	 		try {
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-	 		
 	 		
 	 		for (IPacketListener listener : listeners) {
 				listener.onDecoderSettings(settings.width, settings.height);
@@ -52,11 +47,12 @@ public class VirtualH264Decoder implements VideoDecoder {
 
 		@Override
 		public VideoCodecStatus release() {
-			logger.info("release decode {}", this);
+			logger.info("0 release decode {}", this);
 			if (i420Buffer != null) {
 				i420Buffer.release();
 				i420Buffer = null;
 			}
+			logger.info("1 release decode {}", this);
 			return VideoCodecStatus.OK;
 		}
 

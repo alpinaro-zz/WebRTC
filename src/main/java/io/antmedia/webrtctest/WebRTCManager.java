@@ -4,7 +4,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +26,7 @@ import org.webrtc.PeerConnection.IceGatheringState;
 import org.webrtc.PeerConnection.IceServer;
 import org.webrtc.PeerConnection.Observer;
 import org.webrtc.PeerConnection.SignalingState;
+import org.webrtc.PeerConnectionFactory.Options;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.RtpReceiver;
 import org.webrtc.RtpSender;
@@ -61,6 +67,10 @@ public class WebRTCManager implements Observer, SdpObserver {
 	private WebRtcAudioRecord audioRecord;
 	private VirtualVideoDecoderFactory decoderFactory;
 	private IWebRTCEventListerner listener;
+	private volatile boolean isStopped  = false;
+	private boolean descriptionReady = false;
+	Queue<IceCandidate> iceCandidateQueue = new ConcurrentLinkedQueue<>();
+	private boolean connected = false;
 
 	private static final String AUDIO_ECHO_CANCELLATION_CONSTRAINT = "googEchoCancellation";
 	private static final String AUDIO_AUTO_GAIN_CONTROL_CONSTRAINT = "googAutoGainControl";
@@ -71,13 +81,15 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 	public static final String AUDIO_TRACK_ID = "ARDAMSa0";
 
+	private ExecutorService signallingExecutor = Executors.newSingleThreadExecutor();
+
 
 	public WebRTCManager(String streamId) 
 	{
 		this.setStreamId(streamId);
 		String unsecure = "ws://"+Settings.instance.webSockAdr+":"+Settings.instance.port+"/WebRTCAppEE/websocket";
 		String secure = "wss://"+Settings.instance.webSockAdr+":"+Settings.instance.port+"/WebRTCAppEE/websocket";
-		
+
 
 		URI uri = null;
 
@@ -89,84 +101,86 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 		System.out.println(uri);
 
-		
+
 		websocket = new WebsocketClientEndpoint(uri);
 		websocket.setManager(this);
 	}
 
 	private void initPeerConnection() {
 
+		signallingExecutor.execute(() -> {
+			createMediaConstraintsInternal();
+			peerConnectionFactory = createPeerConnectionFactory();
 
-		createMediaConstraintsInternal();
-		peerConnectionFactory = createPeerConnectionFactory();
+			List<IceServer> iceServers = new ArrayList<>();
+			iceServers.add(IceServer.builder(stunServerUri).createIceServer());
+			PeerConnection.RTCConfiguration rtcConfig = new PeerConnection.RTCConfiguration(iceServers);
 
-		List<IceServer> iceServers = new ArrayList<>();
-		iceServers.add(IceServer.builder(stunServerUri).createIceServer());
-		PeerConnection.RTCConfiguration rtcConfig = new PeerConnection.RTCConfiguration(iceServers);
+			rtcConfig.enableDtlsSrtp = true;
+			rtcConfig.disableIpv6 = true;
+			//rtcConfig.tcpCandidatePolicy = TcpCandidatePolicy.ENABLED; 
 
-		rtcConfig.enableDtlsSrtp = true;
-
-		//rtcConfig.minPort = 5000;
-		//rtcConfig.maxPort = 65000;
-		//rtcConfig.tcpCandidatePolicy = TcpCandidatePolicy.ENABLED; 
-
-		peerConnection = peerConnectionFactory.createPeerConnection(rtcConfig, WebRTCManager.this);
-
-
-		//why ARDAMS is used
-		List<String> mediaStreamLabels = Collections.singletonList("ARDAMS");
-
-		//instantiate video source
-		VideoSource videoSource = peerConnectionFactory.createVideoSource(false);
-		capturerObserver = videoSource.getCapturerObserver();
-
-		//by normal app, video capturer started immediately after creating creating peer connection
+			logger.info("Creating peerconnection hascode:{} time:{}" , WebRTCManager.this.hashCode(), System.currentTimeMillis());
+			peerConnection = peerConnectionFactory.createPeerConnection(rtcConfig, WebRTCManager.this);
 
 
-		/**
-		 *  It seems that we do not need custom video capturer technically
-		 *  because video capturer call capturerObserver's below functions.
-		 *  We can call below functions in WebRTCClient. 
-		 *  
-		 *  capturerObserver.onCapturerStarted(success)
-		 *  capturerObserver.onCapturerStopped();
-		 *  capturerObserver.onFrameCaptured(frame);
-		 */
 
-		VideoTrack videoTrack = peerConnectionFactory.createVideoTrack(VIDEO_TRACK_ID, videoSource);
+			if (streamManager instanceof WebRTCPublisher) {
+				//why ARDAMS is used
+				List<String> mediaStreamLabels = Collections.singletonList("ARDAMS");
 
-		RtpSender videoTrackSender = peerConnection.addTrack(videoTrack, mediaStreamLabels);
+				//instantiate video source
+				VideoSource videoSource = peerConnectionFactory.createVideoSource(false);
+				capturerObserver = videoSource.getCapturerObserver();
 
-		createMediaConstraintsInternal();
+				//by normal app, video capturer started immediately after creating creating peer connection
 
-		AudioSource audioSource = peerConnectionFactory.createAudioSource(audioConstraints);
-		AudioTrack localAudioTrack = peerConnectionFactory.createAudioTrack(AUDIO_TRACK_ID, audioSource);
 
-		RtpSender audioTrackSender = peerConnection.addTrack(localAudioTrack, mediaStreamLabels);
+				/**
+				 *  It seems that we do not need custom video capturer technically
+				 *  because video capturer call capturerObserver's below functions.
+				 *  We can call below functions in WebRTCClient. 
+				 *  
+				 *  capturerObserver.onCapturerStarted(success)
+				 *  capturerObserver.onCapturerStopped();
+				 *  capturerObserver.onFrameCaptured(frame);
+				 */
 
-		capturerObserver = videoSource.getCapturerObserver();
+				VideoTrack videoTrack = peerConnectionFactory.createVideoTrack(VIDEO_TRACK_ID, videoSource);
 
+				peerConnection.addTrack(videoTrack, mediaStreamLabels);
+
+				AudioSource audioSource = peerConnectionFactory.createAudioSource(audioConstraints);
+				AudioTrack localAudioTrack = peerConnectionFactory.createAudioTrack(AUDIO_TRACK_ID, audioSource);
+
+				peerConnection.addTrack(localAudioTrack, mediaStreamLabels);
+
+				capturerObserver = videoSource.getCapturerObserver();
+			}
+
+		});
 	}
 
 	public void setRemoteDescription(SessionDescription sdp) {
-		System.out.println("WebRTCManager.setRemoteDescription()");
-		if (peerConnection != null) {
-			peerConnection.setRemoteDescription(WebRTCManager.this, sdp);
-
-			if(sdp.type == Type.OFFER) {
-				peerConnection.createAnswer(this, sdpMediaConstraints);
+		signallingExecutor.execute(() -> {
+			System.out.println("0 WebRTCManager.setRemoteDescription()");
+			if (peerConnection != null) {
+				peerConnection.setRemoteDescription(WebRTCManager.this, sdp);
 			}
-		}
-		else {
-			logger.warn("Peer connection is null. It cannot add ice candidate for stream Id {}", getStreamId());
-		}
-
+			else {
+				logger.warn("Peer connection is null. It cannot add ice candidate for stream Id {}", getStreamId());
+			}
+			System.out.println("1 WebRTCManager.setRemoteDescription()");
+		});
 	}
 
 
-	public PeerConnectionFactory createPeerConnectionFactory(){
+	private PeerConnectionFactory createPeerConnectionFactory(){
+
+
 		PeerConnectionFactory.initialize(
 				PeerConnectionFactory.InitializationOptions.builder(null)
+				.setFieldTrials(null)
 				.createInitializationOptions());
 
 		encoderFactory = new VirtualVideoEncoderFactory();
@@ -175,7 +189,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 		PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
 		options.disableNetworkMonitor = true;
-
+		options.networkIgnoreMask = Options.ADAPTER_TYPE_LOOPBACK;
 
 		JavaAudioDeviceModule adm;
 
@@ -232,7 +246,9 @@ public class WebRTCManager implements Observer, SdpObserver {
 	}
 
 	public void createOffer() {
+		logger.info("0 CreateOffer");
 		peerConnection.createOffer(WebRTCManager.this, sdpMediaConstraints);
+		logger.info("1 CreateOffer");
 	}
 
 	private void createMediaConstraintsInternal() {
@@ -254,86 +270,41 @@ public class WebRTCManager implements Observer, SdpObserver {
 		sdpMediaConstraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true")); 
 	}
 
-	private void initAudioTrackExecutor() {
-
-		/*
-		audioEncoderExecutorFuture = audioEncoderExecutor.scheduleWithFixedDelay(this::encodeAudioRunner, 5, 10, TimeUnit.MILLISECONDS);
-		audioTrackFuture = signallingExecutor.scheduleAtFixedRate(new Runnable() {
-
-			private int audioFrameLogCounter = 0;
-			// number of frames * number of bytes * number of channels * 2(20ms data)
-			private long lasttAudioTimeStamp = 0;
-			private long totalAudioFrameInterval = 0;
-
-			public void run() {
-				if (isStopped.get()) {
-					logger.info("renderFrame returning because encoder adaptor is stopped for {}", streamId);
-					return;
-				}
-
-				audioFrameLogCounter++;
-				if (!ready.get()) {
-					if (audioFrameLogCounter % 50 == 0) {
-						//each frame is 10 ms and prints log every 500ms
-						logger.info("Waiting for encoder to be ready for {}", streamId);
-					}
-					return;
-				}
-
-				if (firstPacketReceivedTime == 0) {
-					firstPacketReceivedTime = System.currentTimeMillis();
-				}
-
-				audioFramePending.incrementAndGet();
-
-				if (audioFrameLogCounter % 300 == 0) {
-					logger.info("Pending audio frames: {}, audio thread entrance interval: {}ms, total received audio frames: {}"
-							,audioFramePending, (float)totalAudioFrameInterval/receivedAudioFrameCount, receivedAudioFrameCount);
-					audioFrameLogCounter=0;
-
-				}
-
-				long now = System.currentTimeMillis();
-				long timestampMS = (now - firstPacketReceivedTime);
-
-				totalAudioFrameInterval += lasttAudioTimeStamp != 0 ? now - lasttAudioTimeStamp : 0;
-
-				receivedAudioFrameCount++;
-
-				lasttAudioTimeStamp = now;
-
-				ByteBuffer playoutData = webRtcAudioTrack.getPlayoutData();
-				int readSizeInBytes = webRtcAudioTrack.getReadSizeInBytes();
-				byte[] audioData = new byte[readSizeInBytes];
-
-				int numberOfFrames = readSizeInBytes/webRtcAudioTrack.getBytesPerSample();
-
-				playoutData.get(audioData, 0, audioData.length);
-
-				audioFrameQueue.offer(new AudioFrameContext(audioData, timestampMS, numberOfFrames, webRtcAudioTrack.getChannels(), webRtcAudioTrack.getSampleRate()));
-
-			}
-
-		}, 5, 10, TimeUnit.MILLISECONDS);
-
-
-		 */
-	}
-
 	public void addIceCandidate(IceCandidate iceCandidate) {
-		if (!peerConnection.addIceCandidate(iceCandidate)) 
-		{
-			logger.error("Cannot add ice candidate({}) for stream {}", iceCandidate, getStreamId());
-		}	
+		signallingExecutor.execute(() -> {
+			if (descriptionReady) {
+				if (!peerConnection.addIceCandidate(iceCandidate)) 
+				{
+					logger.error("Cannot add ice candidate({}) for stream {}", iceCandidate, getStreamId());
+				}	
+			}
+			else {
+				iceCandidateQueue.add(iceCandidate);
+				logger.warn("Ice candidate will be added later {}", iceCandidate);
+			}
+		});
 	}
 
 	public CapturerObserver getVideoObserver() {
 		return capturerObserver;
 	}
 
-	public void stop() {
-		peerConnection.close();
+	public synchronized void stop() {
+		if (isStopped) {
+			logger.info("WebRTCManager is already stopped. Hash:{}", WebRTCManager.this.hashCode());
+			return;
+		}
+		isStopped = true;
 
+		signallingExecutor.execute(() -> {
+			websocket.close();
+			logger.info("WebRTCManager stopping. Hash: {}", WebRTCManager.this.hashCode());
+			peerConnection.dispose();
+			peerConnection = null;
+			peerConnectionFactory.dispose();
+			peerConnectionFactory = null;
+			logger.info("WebRTCManager stopping leaving. Hash: {}", WebRTCManager.this.hashCode());
+		});
 	}
 
 	public VirtualH264Encoder getEncoder() {
@@ -342,37 +313,88 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 	@Override
 	public void onCreateSuccess(SessionDescription sdp) {
-		logger.info("onCreateSuccess for {}", getStreamId());
-		logger.info(sdp.description);
 
-		SdpObserver dummy = new SdpObserver() {
-			@Override
-			public void onSetSuccess() {
-				logger.info("local SDP is set");
-			}
-			@Override
-			public void onSetFailure(String error) {
-				logger.error("Cannot set local description for {}", getStreamId());
-			}
-			@Override
-			public void onCreateSuccess(SessionDescription sdp) {}
-			@Override
-			public void onCreateFailure(String error) {}
-		};
+		signallingExecutor.execute(() -> {
+			logger.info("0 onCreateSuccess for {}", getStreamId());
 
-		if (sdp.type == Type.ANSWER) {
-			websocket.sendSDPConfiguration(sdp.description, "answer", getStreamId());
-			peerConnection.setLocalDescription(dummy, sdp);
-		}
-		else  {
-			websocket.sendSDPConfiguration(sdp.description, "offer", getStreamId());
-			peerConnection.setLocalDescription(dummy, sdp);
-		}
+			if (sdp.type == Type.ANSWER) {  //this is webrtc player
+
+				peerConnection.setLocalDescription(new SdpObserver() {
+
+					@Override
+					public void onSetSuccess() {
+						for (Iterator<IceCandidate> iterator = iceCandidateQueue.iterator(); iterator.hasNext();) {
+							IceCandidate iceCandidate = iterator.next();
+
+							if (!peerConnection.addIceCandidate(iceCandidate)) {
+								logger.error("Candidate cannot be added {}", iceCandidate);
+							}
+
+							iterator.remove();
+						}
+						descriptionReady = true;
+						websocket.sendSDPConfiguration(sdp.description, "answer", getStreamId());
+					}
+
+					@Override
+					public void onSetFailure(String error) {
+						logger.error("Cannot set local description for {} error:", getStreamId(), error);				
+					}
+
+					@Override
+					public void onCreateSuccess(SessionDescription sdp) {
+						// no need
+					}
+
+					@Override
+					public void onCreateFailure(String error) {
+						// no need
+					}
+				}, sdp);
+			}
+			else  {  //this is webrtc publisher
+
+				peerConnection.setLocalDescription(new SdpObserver() {
+					@Override
+					public void onSetSuccess() {
+						logger.info("local SDP is set");
+						websocket.sendSDPConfiguration(sdp.description, "offer", getStreamId());
+					}
+					@Override
+					public void onSetFailure(String error) {
+						logger.error("Cannot set local description for {} error: ", getStreamId(), error);	
+					}
+					@Override
+					public void onCreateSuccess(SessionDescription sdp) {}
+					@Override
+					public void onCreateFailure(String error) {}
+				}, sdp);
+			}
+			logger.info("1 onCreateSuccess for {}", getStreamId());
+		});
 	}
 
 	@Override
 	public void onSetSuccess() {
-		logger.info("onSetSuccess for {}", getStreamId());
+		signallingExecutor.execute(() -> {
+			logger.info("onSetSuccess for {}", getStreamId());
+			if(streamManager instanceof WebRTCPlayer)  //  sdp.type == Type.OFFER) 
+			{
+				peerConnection.createAnswer(this, sdpMediaConstraints);
+			}
+			else if (streamManager instanceof WebRTCPublisher) {
+				for (Iterator<IceCandidate> iterator = iceCandidateQueue.iterator(); iterator.hasNext();) {
+					IceCandidate iceCandidate = iterator.next();
+
+					if (!peerConnection.addIceCandidate(iceCandidate)) {
+						logger.error("Candidate cannot be added {}", iceCandidate);
+					}
+
+					iterator.remove();
+				}
+				descriptionReady = true;
+			}
+		});
 	}
 
 	@Override
@@ -392,25 +414,34 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 	@Override
 	public void onIceConnectionChange(IceConnectionState newState) {
-		logger.info("onIceConnectionChange {}" , newState);
-		if (newState == IceConnectionState.CONNECTED) {
-			if(Settings.instance.mode == Mode.PLAYER) {
-				streamManager.start();
-				listener.onCompleted();
+		signallingExecutor.execute(() -> {
+			logger.info("0 onIceConnectionChange {}  instance:{} time:{}" , newState, WebRTCManager.this.hashCode(), System.currentTimeMillis());
+			if (newState == IceConnectionState.CONNECTED) {
+
+				if (connected) {
+					logger.info("it's already connected, not starting again. Hash:{}", WebRTCManager.this.hashCode());
+					return;
+				}
+				connected  = true;
+				if(Settings.instance.mode == Mode.PLAYER) {
+					streamManager.start();
+					listener.onCompleted();
+				}
 			}
-		}
-		else if (newState == IceConnectionState.COMPLETED) {
-			if(Settings.instance.mode == Mode.PUBLISHER) {
-				streamManager.start();
-				listener.onCompleted();
+			else if (newState == IceConnectionState.COMPLETED) {
+				if(Settings.instance.mode == Mode.PUBLISHER) {
+					streamManager.start();
+					listener.onCompleted();
+				}
 			}
-		}
-		else if (newState == IceConnectionState.DISCONNECTED || newState == IceConnectionState.FAILED
-				|| newState == IceConnectionState.CLOSED) 
-		{
-			streamManager.stop();
-			stop();
-		}
+			else if (newState == IceConnectionState.DISCONNECTED || newState == IceConnectionState.FAILED
+					|| newState == IceConnectionState.CLOSED) 
+			{
+				streamManager.stop();
+				stop();
+			}
+			logger.info("1 onIceConnectionChange {} instance:{}" , newState, WebRTCManager.this.hashCode());
+		});
 
 	}
 
@@ -426,9 +457,13 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 	@Override
 	public void onIceCandidate(IceCandidate candidate) {
-		logger.info("onIceCandidate candidate: {}" , candidate);
-
-		websocket.sendTakeCandidateMessage(candidate.sdpMLineIndex,	candidate.sdpMid, candidate.sdp, getStreamId());
+		
+		signallingExecutor.execute(() -> {
+			logger.info("0 onIceCandidate candidate: {} time: {}" , candidate, System.currentTimeMillis());
+			websocket.sendTakeCandidateMessage(candidate.sdpMLineIndex,	candidate.sdpMid, candidate.sdp, getStreamId());
+			logger.info("1 onIceCandidate candidate: {}" , candidate);
+		});
+		
 	}
 
 	@Override
@@ -445,13 +480,6 @@ public class WebRTCManager implements Observer, SdpObserver {
 			if (videoTrack != null) {
 				/*
 				 * no need to video sink because we get data with decoder
-				videoTrack.addSink(new VideoSink() {
-
-					@Override
-					public void onFrame(VideoFrame frame) {
-						System.out.println("WebRTCManager.onAddStream(...).new VideoSink() {...}.onFrame()");
-					}
-				});
 				 */
 			}
 		}
@@ -511,7 +539,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 		this.listener = listener;
 
 	}
-	
+
 	public StreamManager getStreamManager() {
 		return streamManager;
 	}

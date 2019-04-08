@@ -65,8 +65,10 @@ public class StatManager {
 		if (!streamsRunningLocal) {
 			streamsRunning = false;
 		}
-		mean = (int) (total/streamManagers.size());
-
+		if (!streamManagers.isEmpty()) {
+			mean = (int) (total/streamManagers.size());
+		}
+		
 		logger.info("stats:\t{}\t{}\t{}\t{}", streamManagers.size(), min, max, mean);
 	}
 

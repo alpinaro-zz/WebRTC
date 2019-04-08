@@ -4,14 +4,14 @@ public class Settings {
 
 	String webSockAdr = "localhost";
 	String label = "nolabel";
-	String streamId = "myStream";
-	String streamSource = "camera";
-	Mode mode = Mode.PLAYER;
+	public String streamId = "myStream";
+	public String streamSource = "camera";
+	public Mode mode = Mode.PLAYER;
 	boolean useUI = true;
 	int port = 5080;
 	boolean verbose = false;
 	boolean isSequre = false;
-	int load = 1;
+	public int load = 1;
 	public int frameLogPeriod = 200; //every 200 frames
 	
 	public static Settings instance = new Settings();
@@ -87,7 +87,7 @@ public class Settings {
 	    return true;
 	}
 
-	boolean parse(String [] args) {
+	public boolean parse(String [] args) {
 	    for(int i = 0; i < args.length; i+=2) {
 	        if(!parseLocal(args[i], args[i+1]))
 	        {
