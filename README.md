@@ -8,7 +8,11 @@ WebRTCTest Tool is a java project for testing Ant Media Server webrtc capabiliti
 ## Run
 It can be run from command promt with the following options.
 ```
-./run.sh -f output.mp4 -m publisher -n 1
+./run.sh -f output.mp4 -m publisher -n 1  #publishes output.mp4 to the server with default name myStream
+```
+
+```
+./run.sh -m player -n 100 -i stream1 -s 10.10.175.53 -u false #plays 100 viewers for default stream myStream
 ```
 
 ### Parameters
