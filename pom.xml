@@ -60,8 +60,12 @@
 			<artifactId>tyrus-standalone-client</artifactId>
 			<version>1.15</version>
 		</dependency>
+		<dependency>
+		    <groupId>org.apache.kafka</groupId>
+		    <artifactId>kafka-streams</artifactId>
+		    <version>2.2.0</version>
+        </dependency>
 	</dependencies>
-
 	<build>
 	 <testResources>
             <testResource>

@@ -20,7 +20,7 @@ It can be run from command promt with the following options.
 Flag 	 Name      	 Default   	 Description                 
 ---- 	 ----      	 -------   	 -----------   
 f    	 File Name 	 -         	 media file in same directory.Mandatory in publishing*            
-s    	 Server Ip 	 localhost 	 server ip                   
+s    	 Server IP 	 localhost 	 server ip                   
 q    	 Sequrity  	 false     	 true(wss) or false(ws)      
 l    	 Label     	 nolabel   	 window lable                
 i    	 Stream Id 	 myStream  	 id for stream               

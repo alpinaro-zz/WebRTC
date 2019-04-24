@@ -97,6 +97,7 @@ public class WebsocketClientEndpoint {
 			final String streamId = (String) jsonObject.get(WebSocketConstants.STREAM_ID);
 			if (streamId == null || streamId.isEmpty()) 
 			{
+				logger.error("Incoming message:{}" , message);
 				sendNoStreamIdSpecifiedError();
 				return;
 			}
@@ -126,6 +127,9 @@ public class WebsocketClientEndpoint {
 			else if (cmd.equals(WebSocketConstants.STREAM_INFORMATION_NOTIFICATION)) {
 			}
 			else if (cmd.equals(WebSocketConstants.PUBLISH_STARTED)) {
+			}
+			else {
+				logger.info("Undefined incoming message:{} ", message);
 			}
 		}
 		catch (Exception e) {
