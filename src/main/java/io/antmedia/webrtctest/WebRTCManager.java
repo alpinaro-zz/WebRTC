@@ -10,6 +10,8 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +83,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 	public static final String AUDIO_TRACK_ID = "ARDAMSa0";
 
-	private ExecutorService signallingExecutor = Executors.newSingleThreadExecutor();
+	private ScheduledExecutorService signallingExecutor = Executors.newSingleThreadScheduledExecutor();
 
 
 	public WebRTCManager(String streamId) 
@@ -104,6 +106,13 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 		websocket = new WebsocketClientEndpoint(uri);
 		websocket.setManager(this);
+	}
+	
+	public void webSocketOpened() {
+		signallingExecutor.scheduleWithFixedDelay(() -> {
+			websocket.sendPingMessage();
+			
+		}, 5, 5, TimeUnit.SECONDS);
 	}
 
 	private void initPeerConnection() {
@@ -246,9 +255,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 	}
 
 	public void createOffer() {
-		logger.info("0 CreateOffer");
 		peerConnection.createOffer(WebRTCManager.this, sdpMediaConstraints);
-		logger.info("1 CreateOffer");
 	}
 
 	private void createMediaConstraintsInternal() {
