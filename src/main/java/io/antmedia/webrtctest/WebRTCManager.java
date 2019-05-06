@@ -110,7 +110,6 @@ public class WebRTCManager implements Observer, SdpObserver {
 	
 	public void webSocketOpened() {
 		signallingExecutor.scheduleWithFixedDelay(() -> {
-			logger.info("send ping message");
 			websocket.sendPingMessage();
 			
 		}, 5, 5, TimeUnit.SECONDS);
