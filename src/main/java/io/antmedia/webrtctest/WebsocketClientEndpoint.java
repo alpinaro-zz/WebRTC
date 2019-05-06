@@ -65,6 +65,10 @@ public class WebsocketClientEndpoint {
 		else {
 			sendPlay(webrtcManager.getStreamId());
 		}
+		
+		if (webrtcManager != null) {
+			webrtcManager.webSocketOpened();
+		}
 	}
 
 	@OnClose
@@ -95,7 +99,9 @@ public class WebsocketClientEndpoint {
 			}
 
 			final String streamId = (String) jsonObject.get(WebSocketConstants.STREAM_ID);
-			if (streamId == null || streamId.isEmpty()) 
+			
+			if ((streamId == null || streamId.isEmpty()) &&
+					!cmd.equals(WebSocketConstants.PONG_COMMAND)) 
 			{
 				logger.error("Incoming message:{}" , message);
 				sendNoStreamIdSpecifiedError();
@@ -127,6 +133,8 @@ public class WebsocketClientEndpoint {
 			else if (cmd.equals(WebSocketConstants.STREAM_INFORMATION_NOTIFICATION)) {
 			}
 			else if (cmd.equals(WebSocketConstants.PUBLISH_STARTED)) {
+			}
+			else if (cmd.equals(WebSocketConstants.PONG_COMMAND)) {
 			}
 			else {
 				logger.info("Undefined incoming message:{} ", message);
@@ -276,6 +284,12 @@ public class WebsocketClientEndpoint {
 
 	public void setManager(WebRTCManager manager) {
 		this.webrtcManager = manager;
+	}
+
+	public void sendPingMessage() {
+		JSONObject jsonResponse = new JSONObject();
+		jsonResponse.put(WebSocketConstants.COMMAND, WebSocketConstants.PING_COMMAND);
+		sendMessage(jsonResponse.toJSONString());	
 	}
 
 }

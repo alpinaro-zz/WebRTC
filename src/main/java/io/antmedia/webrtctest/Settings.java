@@ -14,6 +14,8 @@ public class Settings {
 	public int load = 1;
 	public int frameLogPeriod = 200; //every 200 frames
 	
+	public String kafkaBrokers = null;
+	
 	public static Settings instance = new Settings();
 	
 	void printUsage() {
@@ -80,6 +82,9 @@ public class Settings {
 	    else if(flag.charAt(1) == 'n') {
 	        String strLoad = value;
 	        load  = Integer.parseInt(strLoad);
+	    }
+	    else if (flag.charAt(1) == 'k') {
+	    		kafkaBrokers = value;
 	    }
 	    else {
 	        return false;

@@ -42,6 +42,10 @@ public abstract class StreamManager {
 		last = now;
 	}
 	
+	public long getCount() {
+		return count;
+	}
+	
 	public boolean isRunning() {
 		return isRunning;
 	}
