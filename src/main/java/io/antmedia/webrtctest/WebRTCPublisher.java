@@ -64,7 +64,7 @@ public class WebRTCPublisher extends StreamManager{
 				MP4Reader.Frame frame = reader.videoFrames.get(lastSentPacket++);
 				frame.data.rewind();
 				manager.getEncoder().setEncodedFrameBuffer(frame.data, frame.isKeyFrame, 0);
-				VideoFrame fakeFrame = new VideoFrame(i420Buffer, 0, frame.timeStamp*1000);
+				VideoFrame fakeFrame = new VideoFrame(i420Buffer, 0, frame.timeStamp*1000*1000);
 				manager.getVideoObserver().onFrameCaptured(fakeFrame);
 			}
 			else {
