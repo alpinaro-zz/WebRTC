@@ -13,6 +13,8 @@ public class Settings {
 	boolean isSequre = false;
 	public int load = 1;
 	public int frameLogPeriod = 200; //every 200 frames
+	public boolean audioOnly = false;
+
 	
 	public String kafkaBrokers = null;
 	
