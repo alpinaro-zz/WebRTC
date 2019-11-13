@@ -206,7 +206,7 @@ public class WebsocketClientEndpoint {
 		JSONObject jsonResponse = new JSONObject();
 		jsonResponse.put(WebSocketConstants.COMMAND, WebSocketConstants.PUBLISH_COMMAND);
 		jsonResponse.put(WebSocketConstants.STREAM_ID, streamId);
-		jsonResponse.put(WebSocketConstants.VIDEO, true);
+		jsonResponse.put(WebSocketConstants.VIDEO, !Settings.instance.audioOnly);
 		jsonResponse.put(WebSocketConstants.AUDIO, true);
 		sendMessage(jsonResponse.toJSONString());	
 	}
