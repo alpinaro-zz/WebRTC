@@ -103,15 +103,16 @@ public class MP4Reader{
 
 		if(videoIndex == -1) {
 			logger.error("Media not contains video!");
-			return false;
+			Settings.instance.audioOnly  = true;
 		}
 
 		timeBaseForMS = new AVRational();
 		timeBaseForMS.num(1);
 		timeBaseForMS.den(1000);
 
-
-		initVideoBSF();
+		if(!Settings.instance.audioOnly) {
+			initVideoBSF();
+		}
 
 		if(audioIndex != -1) {
 			audioTimebase = inputContext.streams(audioIndex).time_base();
