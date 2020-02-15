@@ -28,6 +28,7 @@ public class StatManager {
 	private static final String TOTAL_VIDEO_FRAME_COUNT = "total_video_frame_count";
 	private static final String TOPIC_NAME = "kafka-webrtc-tester-stats";
 	private static final String CLIENT_ID = "client_id";
+	private static final String CONNECTED = "connected";
 	
 	private ArrayList<StreamManager> streamManagers = new ArrayList<>();
 	ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(3);
@@ -58,7 +59,7 @@ public class StatManager {
 				while (true) {
 					
 					try {
-						sleep(2000);
+						sleep(10000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -82,9 +83,9 @@ public class StatManager {
 		boolean streamsRunningLocal = false;
 		JSONArray jsonArray = new JSONArray();
 		JSONObject jsonObject;
+		int droppedConnections = 0;
 		for (StreamManager streamManager : streamManagers) 
 		{
-			
 			if (!streamManager.isStarted() ||   //if stream is not started, assume that it is running
 					(streamManager.isRunning() && !streamsRunningLocal)) {
 				//if one stream is running, no need to enter again
@@ -94,27 +95,30 @@ public class StatManager {
 			min = min < fp ? min : fp;
 			max = max < fp ? fp : max;
 			total += fp;
-			jsonObject = new JSONObject();
-			jsonObject.put(VIDEO_FRAME_PERIOD, fp);
-			jsonObject.put(CLIENT_TYPE, streamManager instanceof WebRTCPublisher ? "publisher" : "player");
-			jsonObject.put(TOTAL_VIDEO_FRAME_COUNT, streamManager.getCount());
-			jsonObject.put(CLIENT_ID, streamManager);
-	
-			jsonArray.add(jsonObject);
-		}
-		
-		if (producer != null) {
-			ProducerRecord<Long, String> record = new ProducerRecord<>(TOPIC_NAME,
-					jsonArray.toJSONString());
-			try {
-				producer.send(record).get();
-			} 
-			catch (ExecutionException e) {
-				logger.error("Error in sending record {}", e.getStackTrace());
-			} 
-			catch (InterruptedException e) {
-				logger.error("Error in sending record {}", e.getStackTrace());
-				Thread.currentThread().interrupt();
+			
+			if (producer != null) {
+				jsonObject = new JSONObject();
+				jsonObject.put(VIDEO_FRAME_PERIOD, fp);
+				jsonObject.put(CLIENT_TYPE, streamManager instanceof WebRTCPublisher ? "publisher" : "player");
+				jsonObject.put(TOTAL_VIDEO_FRAME_COUNT, streamManager.getCount());
+				jsonObject.put(CLIENT_ID, streamManager.hashCode());
+				jsonObject.put(CONNECTED, streamManager.isRunning());
+				
+				if (!streamManager.isRunning()) {
+					droppedConnections++;
+				}
+				ProducerRecord<Long, String> record = new ProducerRecord<>(TOPIC_NAME,
+						jsonArray.toJSONString());
+				try {
+					producer.send(record).get();
+				} 
+				catch (ExecutionException e) {
+					logger.error("Error in sending record {}", e.getStackTrace());
+				} 
+				catch (InterruptedException e) {
+					logger.error("Error in sending record {}", e.getStackTrace());
+					Thread.currentThread().interrupt();
+				}
 			}
 		}
 		
@@ -126,7 +130,7 @@ public class StatManager {
 			mean = (int) (total/streamManagers.size());
 		}
 		
-		logger.info("stats:\t{}\t{}\t{}\t{}", streamManagers.size(), min, max, mean);
+		logger.info("stats:\tNumber of Clients:{} Dropped Connections:{} Received Min fps:{} Max fps{} Mean fps:{}", streamManagers.size(), droppedConnections, min, max, mean);
 	}
 
 
