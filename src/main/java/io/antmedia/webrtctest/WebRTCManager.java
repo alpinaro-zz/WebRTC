@@ -443,9 +443,10 @@ public class WebRTCManager implements Observer, SdpObserver {
 			}
 			else if (newState == IceConnectionState.DISCONNECTED || newState == IceConnectionState.FAILED
 					|| newState == IceConnectionState.CLOSED) 
-			{
+			{	
 				streamManager.stop();
 				stop();
+				listener.onCompleted();
 			}
 			logger.info("1 onIceConnectionChange {} instance:{}" , newState, WebRTCManager.this.hashCode());
 		});
