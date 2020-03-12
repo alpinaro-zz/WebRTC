@@ -22,18 +22,19 @@ public class Settings {
 	
 	void printUsage() {
 	    System.out.println("WebRTC Test Tool for Ant Media Server v0.2\n");
-	    System.out.println("Flag \t Name      \t Default   \t Description                 ");
-	    System.out.println("---- \t ----      \t -------   \t -----------                 ");
-	    System.out.println("s    \t Server Ip \t localhost \t server ip                   ");
-	    System.out.println("q    \t Sequrity  \t false     \t true(wss) or false(ws)      ");
-	    System.out.println("l    \t Label     \t nolabel   \t window lable                ");
-	    System.out.println("i    \t Stream Id \t myStream  \t id for stream               ");
-	    System.out.println("f    \t File Name \t camera    \t media file in same directory");
-	    System.out.println("m    \t Mode      \t player    \t publisher or player         ");
-	    System.out.println("u    \t Show GUI  \t true      \t true or false               ");
-	    System.out.println("p    \t Port      \t 5080      \t websocket port number       ");
-	    System.out.println("v    \t Verbose   \t false     \t true or false               ");
-	    System.out.println("n    \t Load Size \t 1         \t number of load              ");
+	    System.out.println("Flag \t Name         \t Default   \t Description                 ");
+	    System.out.println("---- \t ----         \t -------   \t -----------                 ");
+	    System.out.println("s    \t Server Ip    \t localhost \t server ip                   ");
+	    System.out.println("q    \t Sequrity     \t false     \t true(wss) or false(ws)      ");
+	    System.out.println("l    \t Label        \t nolabel   \t window lable                ");
+	    System.out.println("i    \t Stream Id    \t myStream  \t id for stream               ");
+	    System.out.println("f    \t File Name    \t camera    \t media file in same directory");
+	    System.out.println("m    \t Mode         \t player    \t publisher or player         ");
+	    System.out.println("u    \t Show GUI     \t true      \t true or false               ");
+	    System.out.println("p    \t Port         \t 5080      \t websocket port number       ");
+	    System.out.println("v    \t Verbose      \t false     \t true or false               ");
+	    System.out.println("n    \t Load Size    \t 1         \t number of load              ");
+	    System.out.println("k    \t Kafka Broker \t null      \t Kafra broker address withp port");
 	}
 
 	boolean parseLocal(String flag, String value) {

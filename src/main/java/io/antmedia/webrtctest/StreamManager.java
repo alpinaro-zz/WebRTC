@@ -24,9 +24,7 @@ public abstract class StreamManager {
 		if(count != 0) {
 			return (int) (totalDt/count);
 		} 
-		else {
-			return 40;
-		}
+		return -1;
 	}
 
 	protected void update() {
