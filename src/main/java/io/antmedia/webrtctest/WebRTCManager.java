@@ -45,7 +45,7 @@ import org.webrtc.audio.JavaAudioDeviceModule;
 import org.webrtc.audio.WebRtcAudioRecord;
 import org.webrtc.audio.WebRtcAudioTrack;
 
-import io.antmedia.enterprise.webrtc.codec.VirtualH264Encoder;
+import io.antmedia.enterprise.webrtc.codec.VirtualVideoEncoder;
 import io.antmedia.enterprise.webrtc.codec.VirtualVideoEncoderFactory;
 import io.antmedia.webrtc.api.IAudioRecordListener;
 import io.antmedia.webrtc.api.IAudioTrackListener;
@@ -188,7 +188,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 
 		PeerConnectionFactory.initialize(
-				PeerConnectionFactory.InitializationOptions.builder(null)
+				PeerConnectionFactory.InitializationOptions.builder()
 				.setFieldTrials(null)
 				.createInitializationOptions());
 
@@ -255,7 +255,12 @@ public class WebRTCManager implements Observer, SdpObserver {
 	}
 
 	public void createOffer() {
-		peerConnection.createOffer(WebRTCManager.this, sdpMediaConstraints);
+		
+		signallingExecutor.execute(() -> {
+			peerConnection.createOffer(WebRTCManager.this, sdpMediaConstraints);
+		});
+		
+		
 	}
 
 	private void createMediaConstraintsInternal() {
@@ -314,7 +319,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 		});
 	}
 
-	public VirtualH264Encoder getEncoder() {
+	public VirtualVideoEncoder getEncoder() {
 		return encoderFactory.getEncoder();
 	}
 

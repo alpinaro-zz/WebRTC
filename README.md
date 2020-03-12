@@ -29,6 +29,7 @@ u    	 Show GUI  	 true      	 true or false
 p    	 Port      	 5080      	 websocket port number 
 v    	 Verbose   	 false     	 true or false 
 n    	 Count     	 1         	 Number of player/publisher connctions 
+k        Kafka Broker null        Kafra broker address with port
 ```
 
 *File should be in mp4 format and h264, opus encoded

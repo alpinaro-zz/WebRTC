@@ -10,8 +10,6 @@ import org.webrtc.JavaI420Buffer;
 import org.webrtc.VideoCodecStatus;
 import org.webrtc.VideoDecoder;
 
-import io.antmedia.enterprise.webrtc.codec.VirtualH264Encoder;
-
 public class VirtualH264Decoder implements VideoDecoder {
 
 		protected Logger logger = LoggerFactory.getLogger(VirtualH264Decoder.class);

@@ -17,9 +17,9 @@ public class VirtualVideoEncoderFactory implements VideoEncoderFactory {
 	
 	protected static Logger logger = LoggerFactory.getLogger(VirtualVideoEncoderFactory.class);
 	
-	private VirtualH264Encoder virtualH264Encoder = new VirtualH264Encoder();
+	private VirtualVideoEncoder virtualH264Encoder = new VirtualVideoEncoder();
 
-	public VirtualH264Encoder getEncoder() {
+	public VirtualVideoEncoder getEncoder() {
 		return this.virtualH264Encoder;
 	}
 	
