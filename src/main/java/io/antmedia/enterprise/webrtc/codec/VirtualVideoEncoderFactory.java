@@ -1,6 +1,7 @@
 package io.antmedia.enterprise.webrtc.codec;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +54,7 @@ public class VirtualVideoEncoderFactory implements VideoEncoderFactory {
 			logger.info("getSupportedCodecs: {} encoder factory: {}" , h264.name(), this);
 		}
 		supportedCodecInfos.add(new VideoCodecInfo(h264.name(), H264Utils.getDefaultH264Params(false)));
+		supportedCodecInfos.add(new VideoCodecInfo(VideoCodecType.H265.name(), new HashMap<>()));
 		return supportedCodecInfos.toArray(new VideoCodecInfo[supportedCodecInfos.size()]);
 	}
 

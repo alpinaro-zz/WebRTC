@@ -1,5 +1,7 @@
 package io.antmedia.webrtctest;
 
+import java.util.HashMap;
+
 import org.webrtc.H264Utils;
 import org.webrtc.VideoCodecInfo;
 import org.webrtc.VideoCodecType;
@@ -17,8 +19,9 @@ public class VirtualVideoDecoderFactory implements VideoDecoderFactory{
 
 	@Override
 	public VideoCodecInfo[] getSupportedCodecs() {
-		VideoCodecInfo[] codecInfo = new VideoCodecInfo[1];
+		VideoCodecInfo[] codecInfo = new VideoCodecInfo[2];
 		codecInfo[0] = new VideoCodecInfo(VideoCodecType.H264.name(), H264Utils.getDefaultH264Params(false));
+		codecInfo[1] = new VideoCodecInfo(VideoCodecType.H265.name(), new HashMap<>());
         return codecInfo;
 	}
 
