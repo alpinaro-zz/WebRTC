@@ -1,6 +1,9 @@
 package io.antmedia.webrtctest;
 
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.slf4j.Logger;
@@ -57,6 +60,14 @@ public class VirtualH264Decoder implements VideoDecoder {
 		@Override
 		public VideoCodecStatus decode(EncodedImage frame, DecodeInfo info) 
 		{
+			frame.buffer.rewind();
+			
+			//logger.info("decode encoded image {},  {}, {}, {}, {}", frame.buffer.get(0), frame.buffer.get(1), frame.buffer.get(2), 
+			//		frame.buffer.get(3),
+			//		frame.buffer.get(4));
+			
+			byte[] data = new byte[frame.buffer.limit()];
+			frame.buffer.get(data);
 			for (IPacketListener listener : listeners) {
 				listener.onEncodedImage(frame);
 			}
