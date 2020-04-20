@@ -1,12 +1,15 @@
 package io.antmedia.webrtctest;
 
+import org.webrtc.Logging.Severity;
+
 public class Settings {
 
 	String webSockAdr = "localhost";
-	String label = "nolabel";
 	public String streamId = "myStream";
 	public String streamSource = "camera";
 	public Mode mode = Mode.PLAYER;
+	public Severity logLevel = Severity.LS_ERROR;
+	
 	boolean useUI = true;
 	int port = 5080;
 	boolean verbose = false;
@@ -26,7 +29,7 @@ public class Settings {
 	    System.out.println("---- \t ----         \t -------   \t -----------                 ");
 	    System.out.println("s    \t Server Ip    \t localhost \t server ip                   ");
 	    System.out.println("q    \t Sequrity     \t false     \t true(wss) or false(ws)      ");
-	    System.out.println("l    \t Label        \t nolabel   \t window lable                ");
+	    System.out.println("l    \t Log Level    \t 3         \t 0:VERBOSE,1:INFO,2:WARNING,3:ERROR,4:NONE");
 	    System.out.println("i    \t Stream Id    \t myStream  \t id for stream               ");
 	    System.out.println("f    \t File Name    \t camera    \t media file in same directory");
 	    System.out.println("m    \t Mode         \t player    \t publisher or player         ");
@@ -49,7 +52,7 @@ public class Settings {
 	        isSequre = Boolean.parseBoolean(seq);
 	    }
 	    else if(flag.charAt(1) == 'l') {
-	        label = value;
+	        logLevel = Severity.values()[Integer.parseInt(value)];
 	    }
 	    else if(flag.charAt(1) == 'i') {
 	        streamId = value;
@@ -111,7 +114,7 @@ public class Settings {
 	    System.out.println("Settings:\n");
 	    System.out.println("- webSockAdr:" + webSockAdr);
 	    System.out.println("- is sequre:" + isSequre);
-	    System.out.println("- label:" + label);
+	    System.out.println("- logLevel:" + logLevel);
 	    System.out.println("- stream id:"+ streamId);
 	    System.out.println("- stream source:" + streamSource);
 	    System.out.println("- mode:" + mode);

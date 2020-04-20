@@ -20,6 +20,8 @@ import org.webrtc.AudioTrack;
 import org.webrtc.CapturerObserver;
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
+import org.webrtc.Logging;
+import org.webrtc.Logging.Severity;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
@@ -166,6 +168,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 				capturerObserver = videoSource.getCapturerObserver();
 			}
+
+			Logging.enableLogToDebugOutput(Settings.instance.logLevel);
 
 		});
 	}
