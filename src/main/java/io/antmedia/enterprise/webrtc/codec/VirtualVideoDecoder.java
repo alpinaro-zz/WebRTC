@@ -1,4 +1,4 @@
-package io.antmedia.webrtctest;
+package io.antmedia.enterprise.webrtc.codec;
 
 
 import java.util.ArrayList;
@@ -10,9 +10,11 @@ import org.webrtc.JavaI420Buffer;
 import org.webrtc.VideoCodecStatus;
 import org.webrtc.VideoDecoder;
 
-public class VirtualH264Decoder implements VideoDecoder {
+import io.antmedia.webrtctest.IPacketListener;
 
-		protected Logger logger = LoggerFactory.getLogger(VirtualH264Decoder.class);
+public class VirtualVideoDecoder implements VideoDecoder {
+
+		protected Logger logger = LoggerFactory.getLogger(VirtualVideoDecoder.class);
 		private Callback decodeCallback;
 		private JavaI420Buffer i420Buffer;
 		private long lastKeyFrameRequestTimeMs = 0;

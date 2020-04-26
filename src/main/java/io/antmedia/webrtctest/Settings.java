@@ -6,22 +6,23 @@ public class Settings {
 
 	String webSockAdr = "localhost";
 	public String streamId = "myStream";
-	public String streamSource = "camera";
+	public String streamSource = "test.mp4";
 	public Mode mode = Mode.PLAYER;
 	public Severity logLevel = Severity.LS_ERROR;
 	
-	boolean useUI = true;
-	int port = 5080;
+	public boolean useUI = true;
+	public int port = 5080;
 	boolean verbose = false;
 	boolean isSequre = false;
 	public int load = 1;
 	public int frameLogPeriod = 200; //every 200 frames
 	public boolean audioOnly = false;
+	public boolean loop;
 
 	
 	public String kafkaBrokers = null;
-	
-	public static Settings instance = new Settings();
+	public VideoCodec codec = VideoCodec.H264;
+	public boolean dataChannel;
 	
 	void printUsage() {
 	    System.out.println("WebRTC Test Tool for Ant Media Server v0.2\n");
@@ -38,6 +39,11 @@ public class Settings {
 	    System.out.println("v    \t Verbose      \t false     \t true or false               ");
 	    System.out.println("n    \t Load Size    \t 1         \t number of load              ");
 	    System.out.println("k    \t Kafka Broker \t null      \t Kafra broker address withp port");
+	    System.out.println("r    \t Loop Publish \t false     \t true or false");
+	    System.out.println("c    \t Codec        \t h264      \t h264 or VP8");
+	    System.out.println("d    \t DataChannel  \t false     \t true or false");
+
+
 	}
 
 	boolean parseLocal(String flag, String value) {
@@ -77,6 +83,10 @@ public class Settings {
 	        String strUI = value;
 	        useUI = Boolean.parseBoolean(strUI);
 	    }
+	    else if(flag.charAt(1) == 'r') {
+	        String strLoop = value;
+	        loop = Boolean.parseBoolean(strLoop);
+	    }
 	    else if(flag.charAt(1) == 'p') {
 	        String strPort = value;
 	        port = Integer.parseInt(strPort);
@@ -91,6 +101,23 @@ public class Settings {
 	    }
 	    else if (flag.charAt(1) == 'k') {
 	    		kafkaBrokers = value;
+	    }
+	    else if(flag.charAt(1) == 'c') {
+	        String strCodec = value;
+	        if(strCodec.contentEquals("h264")){
+	            codec = VideoCodec.H264;
+	        }
+	        else if(strCodec.contentEquals("VP8")){
+	        	codec = VideoCodec.VP8;
+	        }
+	        else {
+	            System.out.println("undefined codec:"+strCodec);
+	            return false;
+	        }
+	    }
+	    else if(flag.charAt(1) == 'd') {
+	        String strDC = value;
+	        dataChannel = Boolean.parseBoolean(strDC);
 	    }
 	    else {
 	        return false;
@@ -122,6 +149,9 @@ public class Settings {
 	    System.out.println("- port:" + port);
 	    System.out.println("- verbose:" + verbose);
 	    System.out.println("- load:" + load);
+	    System.out.println("- loop:" + loop);
+	    System.out.println("- codec:" + codec);
+	    System.out.println("- dataChannel:" + dataChannel);
 	}
 
 }

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import io.antmedia.webrtctest.IWebRTCEventListerner;
-import io.antmedia.webrtctest.MP4Reader;
+import io.antmedia.webrtctest.FileReader;
 import io.antmedia.webrtctest.Mode;
 import io.antmedia.webrtctest.Settings;
 import io.antmedia.webrtctest.StatManager;
@@ -15,26 +15,24 @@ import io.antmedia.webrtctest.WebRTCManager;
 import io.antmedia.webrtctest.WebRTCPlayer;
 import io.antmedia.webrtctest.WebRTCPublisher;
 
-/**
- * Hello world!
- *
- */
 public class Starter implements IWebRTCEventListerner
 {
 
 	ArrayList<WebRTCManager> managers = new ArrayList<>();
-	private MP4Reader reader;
+	private FileReader reader;
 	
-	StatManager statManager = new StatManager();
-
+	StatManager statManager;
+    Settings settings = new Settings();
+    
+    private IWebRTCEventListerner listener;
 	
 	int startingIndex = 0;
 
 	public Starter(String[] args) {
-		Settings.instance.parse(args);
-		
-		if(Settings.instance.mode == Mode.PUBLISHER) {
-			reader = new MP4Reader(Settings.instance.streamSource);
+		settings.parse(args);
+		statManager = new StatManager(settings.kafkaBrokers);
+		if(settings.mode == Mode.PUBLISHER) {
+			reader = new FileReader(settings);
 			if(reader.init()) {
 				reader.start();
 			}
@@ -43,16 +41,16 @@ public class Starter implements IWebRTCEventListerner
 			}
 		}
 
-		for (int i = 0; i < Settings.instance.load; i++) {
-			String suffix = Settings.instance.mode == Mode.PUBLISHER && Settings.instance.load > 1 ? "-"+i : ""; 
-			WebRTCManager webRTCManager = new WebRTCManager(Settings.instance.streamId+suffix);
+		for (int i = 0; i < settings.load; i++) {
+			String suffix = settings.mode == Mode.PUBLISHER && settings.load > 1 ? "-"+i : ""; 
+			WebRTCManager webRTCManager = new WebRTCManager(settings.streamId+suffix, settings);
 
 			StreamManager streamManager = null;
-			if(Settings.instance.mode == Mode.PUBLISHER) {
-				streamManager = new WebRTCPublisher(reader);
+			if(settings.mode == Mode.PUBLISHER) {
+				streamManager = new WebRTCPublisher(reader, settings.loop);
 			}
-			else if(Settings.instance.mode == Mode.PLAYER){
-				streamManager = new WebRTCPlayer();
+			else if(settings.mode == Mode.PLAYER){
+				streamManager = new WebRTCPlayer(settings.useUI, settings.codec);
 			}
 
 			if (streamManager == null) {
@@ -73,7 +71,7 @@ public class Starter implements IWebRTCEventListerner
 
 	}
 
-	private void start() {
+	public void start() {
 		System.out.println("start");
 		managers.get(startingIndex).start();
 		startingIndex++;		
@@ -88,18 +86,38 @@ public class Starter implements IWebRTCEventListerner
 		System.out.println("Leaving main method");
 	}
 
+	public void stop() {
+		for (WebRTCManager webRTCManager : managers) {
+			webRTCManager.stop();
+		}
+	}
+	
+	public IWebRTCEventListerner getListener() {
+		return listener;
+	}
+
+	public void setListener(IWebRTCEventListerner listener) {
+		this.listener = listener;
+	}
+	
+	public void sendDataChannelMessage(String message) {
+		managers.get(0).sendDataChannelMessage(message);
+	}
+
 	@Override
 	public void onCompleted() {
-		
 		System.out.println("on completed");
 		
 		statManager.addStreamManager(managers.get(startingIndex-1).getStreamManager());
 
-		if(startingIndex < Settings.instance.load) {
+		if(startingIndex < settings.load) {
 			start();
 		}
-		
 	}
-
+	
+	@Override
+	public void onDataChannelMessage(String string) {
+	}
+	
 
 }

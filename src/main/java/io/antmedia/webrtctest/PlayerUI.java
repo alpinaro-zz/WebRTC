@@ -1,6 +1,6 @@
 package io.antmedia.webrtctest;
 
-import static org.bytedeco.javacpp.avcodec.AV_CODEC_ID_H264;
+import static org.bytedeco.javacpp.avcodec.*;
 import static org.bytedeco.javacpp.avcodec.av_init_packet;
 import static org.bytedeco.javacpp.avcodec.av_packet_rescale_ts;
 import static org.bytedeco.javacpp.avcodec.avcodec_alloc_context3;
@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webrtc.EncodedImage;
 
-public class H264Player {
+public class PlayerUI {
 
 	private AVCodecContext codecContext;
 	private AVFrame decodedFrame;
@@ -46,10 +46,9 @@ public class H264Player {
 	private int height = 360;
 	private BufferedImage image;
 	private JFrame jFrame;
-	private Logger logger = LoggerFactory.getLogger(H264Player.class);
+	private Logger logger = LoggerFactory.getLogger(PlayerUI.class);
 
-
-	public H264Player() {
+	public PlayerUI() {
 		
 		jFrame = new JFrame();
 		panel = new JPanel() {
@@ -95,7 +94,7 @@ public class H264Player {
 
 
 
-	public void init(int width, int height) {
+	public void init(int width, int height, VideoCodec videoCodec) {
 		this.width = width;
 		this.height = height;
 		av_log_set_level(AV_LOG_VERBOSE);
@@ -107,7 +106,7 @@ public class H264Player {
 		int ret;
 		AVDictionary dict = null;
 		AVCodec codec;
-		codec = avcodec_find_decoder(AV_CODEC_ID_H264);
+		codec = avcodec_find_decoder(videoCodec == VideoCodec.H264 ? AV_CODEC_ID_H264 : AV_CODEC_ID_VP8);
 		codecContext = avcodec_alloc_context3(codec);
 		codecContext.width(width);
 		codecContext.height(height);

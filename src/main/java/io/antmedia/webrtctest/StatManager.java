@@ -41,7 +41,11 @@ public class StatManager {
 	private String instanceId;
 	
 	private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+	private String kafkaBrokers;
 	
+	public StatManager(String kafkaBrokers) {
+		this.kafkaBrokers = kafkaBrokers;
+	}
 	
 	public static Producer<Long, String> createProducer(String kafkaBrokers, String clientId) {
 		Properties props = new Properties();
@@ -54,8 +58,8 @@ public class StatManager {
 	
 	public void start() {
 		
-		if (Settings.instance.kafkaBrokers != null) {
-			producer = createProducer(Settings.instance.kafkaBrokers, String.valueOf(this.hashCode()));
+		if (kafkaBrokers != null) {
+			producer = createProducer(kafkaBrokers, String.valueOf(this.hashCode()));
 			instanceId = UUID.randomUUID().toString();
 		}
 

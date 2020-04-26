@@ -17,15 +17,22 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 
 	
 	OpusPlayer aPlayer;
-	H264Player vPlayer;
+	PlayerUI vPlayer;
 	private Object audioCapturerFuture;
-
+	private boolean useUI;
+	private VideoCodec videoCodec;
+	
+	public WebRTCPlayer(boolean useUI, VideoCodec videoCodec) {
+		this.useUI = useUI;
+		this.videoCodec = videoCodec;
+	}
+	
 	@Override
 	public void start() {
 		super.start();
 		manager.getDecoder().subscribe(this);
 		running = true;
-		if(Settings.instance.useUI) {
+		if(useUI) {
 			aPlayer = new OpusPlayer();
 			aPlayer.init();
 			audioCapturerFuture = scheduledExecutorService.scheduleAtFixedRate(new AudioCapturer(), 1000, 10, TimeUnit.MILLISECONDS);
@@ -42,7 +49,7 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 	@Override
 	public void onEncodedImage(EncodedImage frame) {
 		update();
-		if(Settings.instance.useUI) {
+		if(useUI) {
 			vPlayer.play(frame);
 		}
 	}
@@ -63,15 +70,13 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 				aPlayer.play(audioData);
 			}
 		}
-
 	}
-
 
 	@Override
 	public void onDecoderSettings(int width, int height) {
-		if(Settings.instance.useUI) {
-			vPlayer = new H264Player();
-			vPlayer.init(width, height);
+		if(useUI) {
+			vPlayer = new PlayerUI();
+			vPlayer.init(width, height, videoCodec);
 		}
 	}
 
