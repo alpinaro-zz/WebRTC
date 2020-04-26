@@ -21,14 +21,16 @@ public class WebRTCPublisher extends StreamManager{
 
 	private boolean started = false;
 	private JavaI420Buffer i420Buffer;
-	private MP4Reader reader;
+	private FileReader reader;
 	ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
 	private ScheduledFuture<?> videoSenderFuture;
 	private ScheduledFuture<?> audioSenderFuture;
+	private boolean loop;
 
-	public WebRTCPublisher(MP4Reader reader) 
+	public WebRTCPublisher(FileReader reader, boolean loop) 
 	{
 		this.reader = reader; 
+		this.loop = loop;
 	}
 
 	@Override
@@ -65,12 +67,15 @@ public class WebRTCPublisher extends StreamManager{
 			update();
 			
 			if(lastSentPacket < reader.videoFrames.size()) {
-				MP4Reader.Frame frame = reader.videoFrames.get(lastSentPacket++);
+				FileReader.Frame frame = reader.videoFrames.get(lastSentPacket++);
 				frame.data.rewind();
 				List<NaluIndex> naluIndices = findNaluIndices(frame.data);
 				manager.getEncoder().setEncodedFrameBuffer(frame.data, frame.isKeyFrame, frame.timeStamp*1000*1000, 0, naluIndices, "0");
 				//VideoFrame fakeFrame = new VideoFrame(i420Buffer, 0, frame.timeStamp*1000*1000);
 				//manager.getVideoObserver().onFrameCaptured(fakeFrame);
+			}
+			else if(loop) {
+					lastSentPacket = 0;
 			}
 			else {
 				WebRTCPublisher.this.stopVideo();
@@ -84,9 +89,12 @@ public class WebRTCPublisher extends StreamManager{
 		@Override
 		public void run() {
 			if(lastSentPacket < reader.audioFrames.size()) {
-				MP4Reader.Frame frame = reader.audioFrames.get(lastSentPacket++);
+				FileReader.Frame frame = reader.audioFrames.get(lastSentPacket++);
 				frame.data.rewind();
 				manager.getAudioRecord().notifyEncodedData(frame.data); //20ms of audio encoded data
+			}
+			else if(loop) {
+				lastSentPacket = 0;
 			}
 			else {
 				WebRTCPublisher.this.stopAudio();

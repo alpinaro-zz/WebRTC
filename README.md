@@ -19,17 +19,20 @@ It can be run from command promt with the following options.
 ```
 Flag 	 Name      	 Default   	 Description                 
 ---- 	 ----      	 -------   	 -----------   
-f    	 File Name 	 -         	 media file in same directory.Mandatory in publishing*            
+f    	 File Name 	 test.mp4     	 media file in same directory.Mandatory in publishing*            
 s    	 Server IP 	 localhost 	 server ip                   
 q    	 Security  	 false     	 true(wss) or false(ws)      
-l    	 Label     	 nolabel   	 window lable                
+l       Log Level     3              0:VERBOSE,1:INFO,2:WARNING,3:ERROR,4:NONE
 i    	 Stream Id 	 myStream  	 id for stream               
 m    	 Mode      	 player    	 publisher or player         
 u    	 Show GUI  	 true      	 true or false               
 p    	 Port      	 5080      	 websocket port number 
 v    	 Verbose   	 false     	 true or false 
 n    	 Count     	 1         	 Number of player/publisher connctions 
-k        Kafka Broker null        Kafra broker address with port
+k       Kafka Broker  null          Kafra broker address with port
+r    	 Publish Loop 	 false         true or false
+c    	 Codec         h264          h264 or VP8 
+d    	 Data Channel  false         true or false 
 ```
 
 *File should be in mp4 format and h264, opus encoded
