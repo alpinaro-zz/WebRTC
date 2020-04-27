@@ -26,7 +26,7 @@ public class Starter implements IWebRTCEventListerner
     
     private IWebRTCEventListerner listener;
 	
-	int startingIndex = 0;
+	protected int startingIndex = 0;
 
 	public Starter(String[] args) {
 		settings.parse(args);

@@ -74,7 +74,7 @@ public class StatManager {
 
 
 	private void logStats() {
-		logger.info("<- Logging stats ->");
+		//logger.info("<- Logging stats ->");
 		long total = 0; 
 		int min = Integer.MAX_VALUE;
 		int max = Integer.MIN_VALUE;
@@ -143,7 +143,7 @@ public class StatManager {
 			mean = (int) (total/numberOfClientsForFPSCalculation);
 		}
 		
-		logger.info("stats:\tNumber of Clients:{} Active Connections:{} Dropped Connections:{} Received Min frame period:{}ms, Max frame period: {}ms, Mean frame period:{}ms, cpu load: %{} time: {}", streamManagers.size(), activeConnections, droppedConnections, min, max, mean, systemCpuLoad, System.currentTimeMillis()/1000);
+		logger.debug("stats:\tNumber of Clients:{} Active Connections:{} Dropped Connections:{} Received Min frame period:{}ms, Max frame period: {}ms, Mean frame period:{}ms, cpu load: %{} time: {}", streamManagers.size(), activeConnections, droppedConnections, min, max, mean, systemCpuLoad, System.currentTimeMillis()/1000);
 	}
 
 
