@@ -193,9 +193,11 @@ public class FileReader{
 			}
 			else if (pkt.stream_index() == audioIndex) {
 				ByteBuffer data = ByteBuffer.allocateDirect(pkt.size());
-				data.put(pkt.data().position(0).limit(pkt.size()).asByteBuffer());
-				long timeStamp = av_rescale_q(pkt.pts(), audioTimebase, timeBaseForMS);
-				audioFrames.add(new Frame(data, timeStamp, false));
+				if(pkt.size() > 0) {
+					data.put(pkt.data().position(0).limit(pkt.size()).asByteBuffer());
+					long timeStamp = av_rescale_q(pkt.pts(), audioTimebase, timeBaseForMS);
+					audioFrames.add(new Frame(data, timeStamp, false));
+				}
 			}
 		}
 	}
