@@ -19,7 +19,7 @@ It can be run from command promt with the following options.
 ```
 Flag 	 Name      	 Default   	 Description                 
 ---- 	 ----      	 -------   	 -----------   
-f    	 File Name 	 test.mp4     	 media file in same directory.Mandatory in publishing*            
+f    	 File Name 	 test.mp4     	 Source file* for publisher output file for player        
 s    	 Server IP 	 localhost 	 server ip                   
 q    	 Security  	 false     	 true(wss) or false(ws)      
 l       Log Level     3              0:VERBOSE,1:INFO,2:WARNING,3:ERROR,4:NONE

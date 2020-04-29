@@ -50,7 +50,7 @@ public class Starter implements IWebRTCEventListerner
 				streamManager = new WebRTCPublisher(reader, settings.loop);
 			}
 			else if(settings.mode == Mode.PLAYER){
-				streamManager = new WebRTCPlayer(settings.useUI, settings.codec);
+				streamManager = new WebRTCPlayer(settings);
 			}
 
 			if (streamManager == null) {

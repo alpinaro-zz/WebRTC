@@ -32,7 +32,7 @@ public class Settings {
 	    System.out.println("q    \t Sequrity     \t false     \t true(wss) or false(ws)      ");
 	    System.out.println("l    \t Log Level    \t 3         \t 0:VERBOSE,1:INFO,2:WARNING,3:ERROR,4:NONE");
 	    System.out.println("i    \t Stream Id    \t myStream  \t id for stream               ");
-	    System.out.println("f    \t File Name    \t camera    \t media file in same directory");
+	    System.out.println("f    \t File Name    \t test.mp4  \t Source file* for publisher output file for player");
 	    System.out.println("m    \t Mode         \t player    \t publisher or player         ");
 	    System.out.println("u    \t Show GUI     \t true      \t true or false               ");
 	    System.out.println("p    \t Port         \t 5080      \t websocket port number       ");
