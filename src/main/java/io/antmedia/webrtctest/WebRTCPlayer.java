@@ -1,13 +1,19 @@
 package io.antmedia.webrtctest;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webrtc.EncodedImage;
+
+import io.antmedia.webrtctest.filewriter.H264Writer;
+import io.antmedia.webrtctest.filewriter.IFileWriter;
+import io.antmedia.webrtctest.filewriter.VP8Writer;
 
 public class WebRTCPlayer extends StreamManager implements IPacketListener{
 
@@ -18,13 +24,13 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 	
 	OpusPlayer aPlayer;
 	PlayerUI vPlayer;
-	private Object audioCapturerFuture;
-	private boolean useUI;
-	private VideoCodec videoCodec;
 	
-	public WebRTCPlayer(boolean useUI, VideoCodec videoCodec) {
-		this.useUI = useUI;
-		this.videoCodec = videoCodec;
+	private Settings settings;
+	private ScheduledFuture<?> audioCapturerFuture;
+	private IFileWriter fileWriter;
+	
+	public WebRTCPlayer(Settings settings) {
+		this.settings = settings;
 	}
 	
 	@Override
@@ -32,7 +38,7 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 		super.start();
 		manager.getDecoder().subscribe(this);
 		running = true;
-		if(useUI) {
+		if(settings.useUI) {
 			aPlayer = new OpusPlayer();
 			aPlayer.init();
 			audioCapturerFuture = scheduledExecutorService.scheduleAtFixedRate(new AudioCapturer(), 1000, 10, TimeUnit.MILLISECONDS);
@@ -44,13 +50,22 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 		super.stop();
 		logger.info("WebRTCPlayer is stopping");
 		running = false;
+		
+		if(fileWriter != null) {
+			fileWriter.stop();
+		}
 	}
 
 	@Override
 	public void onEncodedImage(EncodedImage frame) {
 		update();
-		if(useUI) {
+		
+		if(settings.useUI) {
 			vPlayer.play(frame);
+		}
+		
+		if(fileWriter != null) {
+			fileWriter.onFrame(frame);
 		}
 	}
 	
@@ -74,10 +89,27 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 
 	@Override
 	public void onDecoderSettings(int width, int height) {
-		if(useUI) {
+		if(settings.useUI) {
 			vPlayer = new PlayerUI();
-			vPlayer.init(width, height, videoCodec);
+			vPlayer.init(width, height, settings.codec);
 		}
+		
+		if(!settings.streamSource.isEmpty()) {
+			String extension = settings.streamSource.contains(".") ?
+					settings.streamSource.split("\\.")[1] : 
+						"na";
+					
+			if (settings.codec == VideoCodec.H264 && extension.equals("h264")) {
+				fileWriter= new H264Writer(settings.streamSource);
+			}
+			else if (settings.codec == VideoCodec.VP8 && extension.equals("ivf")) {
+				try {
+					fileWriter= new VP8Writer(settings.streamSource, width, height, 1, 1000000);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		} 
 	}
 
 }

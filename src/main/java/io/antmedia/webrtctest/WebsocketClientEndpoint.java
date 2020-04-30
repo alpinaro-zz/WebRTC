@@ -114,7 +114,7 @@ public class WebsocketClientEndpoint {
 					!cmd.equals(WebSocketConstants.PONG_COMMAND)) 
 			{
 				logger.error("Incoming message:{}" , message);
-				sendNoStreamIdSpecifiedError();
+				//sendNoStreamIdSpecifiedError();
 				return;
 			}
 			if (cmd.equals(WebSocketConstants.START_COMMAND))  

@@ -26,7 +26,7 @@ public class Starter implements IWebRTCEventListerner
     
     private IWebRTCEventListerner listener;
 	
-	int startingIndex = 0;
+	protected int startingIndex = 0;
 
 	public Starter(String[] args) {
 		settings.parse(args);
@@ -50,7 +50,7 @@ public class Starter implements IWebRTCEventListerner
 				streamManager = new WebRTCPublisher(reader, settings.loop);
 			}
 			else if(settings.mode == Mode.PLAYER){
-				streamManager = new WebRTCPlayer(settings.useUI, settings.codec);
+				streamManager = new WebRTCPlayer(settings);
 			}
 
 			if (streamManager == null) {

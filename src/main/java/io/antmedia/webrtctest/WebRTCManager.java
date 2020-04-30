@@ -172,7 +172,9 @@ public class WebRTCManager implements Observer, SdpObserver {
 						@Override
 						public void onMessage(Buffer buffer) {
 							logger.debug("DataChannel message received stream Id {}", streamId);
-
+							byte[] data = new byte[buffer.data.capacity()];
+							buffer.data.get(data);
+							listener.onDataChannelMessage(new String(data));
 						}
 
 						@Override
@@ -189,7 +191,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 	}
 
 	public void setRemoteDescription(SessionDescription sdp) {
-		System.out.println("******************\nsetRemoteDescription\n"+sdp.description+"\n**************************");
+		//System.out.println("******************\nsetRemoteDescription\n"+sdp.description+"\n**************************");
 		signallingExecutor.execute(() -> {
 			if (peerConnection != null) {
 				peerConnection.setRemoteDescription(WebRTCManager.this, sdp);
@@ -342,7 +344,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 	@Override
 	public void onCreateSuccess(SessionDescription sdp) {
 
-		System.out.println("******************\nonCreateSuccess\n"+sdp.description+"\n**************************");
+		//System.out.println("******************\nonCreateSuccess\n"+sdp.description+"\n**************************");
 
 		signallingExecutor.execute(() -> {
 			logger.info("0 onCreateSuccess for {}", getStreamId());
@@ -539,7 +541,9 @@ public class WebRTCManager implements Observer, SdpObserver {
 				@Override
 				public void onMessage(org.webrtc.DataChannel.Buffer buffer) {
 					logger.debug("DataChannel message received stream Id {}", streamId);
-					listener.onDataChannelMessage(buffer.data.asCharBuffer().toString());
+					byte[] data = new byte[buffer.data.capacity()];
+					buffer.data.get(data);
+					listener.onDataChannelMessage(new String(data));
 				}
 
 				@Override
@@ -604,9 +608,9 @@ public class WebRTCManager implements Observer, SdpObserver {
 	}
 
 	public void sendDataChannelMessage(String message) {
-		if(dataChannel != null && dataChannel.state() == State.OPEN) {
+		if(dataChannel != null) {
 			Buffer buffer = new Buffer(ByteBuffer.wrap(message.getBytes()), false);
-			dataChannel.send(buffer);
+			signallingExecutor.execute(() -> dataChannel.send(buffer));
 		}
 	}
 }
