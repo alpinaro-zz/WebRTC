@@ -72,7 +72,7 @@ public class Starter implements IWebRTCEventListerner
 	}
 
 	public void start() {
-		System.out.println("start");
+		System.out.println("~~~~~~~~ Start ("+hashCode()+") ~~~~~~~~");
 		managers.get(startingIndex).start();
 		startingIndex++;		
 	}
@@ -92,7 +92,7 @@ public class Starter implements IWebRTCEventListerner
 			webRTCManager.stop();
 		}
 		managers.clear();
-		
+		System.out.println("~~~~~~~~ Stop ("+hashCode()+")~~~~~~~~");
 	}
 	
 	public IWebRTCEventListerner getListener() {
