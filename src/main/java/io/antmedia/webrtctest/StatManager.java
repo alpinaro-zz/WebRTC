@@ -66,7 +66,7 @@ public class StatManager {
 		executorService.scheduleWithFixedDelay(() -> {
 			logStats();
 			if (!streamsRunning) {
-				logger.info("Seems all streams are stopped and breaking the stats loop");
+				logger.info("Seems all streams are stopped and breaking the stats loop hash: {}", hashCode());
 				
 			}
 		}, 10, 10, TimeUnit.SECONDS);
@@ -143,7 +143,7 @@ public class StatManager {
 			mean = (int) (total/numberOfClientsForFPSCalculation);
 		}
 		
-		logger.info("stats:\tNumber of Clients:{} Active Connections:{} Dropped Connections:{} Received Min frame period:{}ms, Max frame period: {}ms, Mean frame period:{}ms, cpu load: %{} time: {}", streamManagers.size(), activeConnections, droppedConnections, min, max, mean, systemCpuLoad, System.currentTimeMillis()/1000);
+		logger.info("stats :\tNumber of Clients:{} Active Connections:{} Dropped Connections:{} Received Min frame period:{}ms, Max frame period: {}ms, Mean frame period:{}ms, cpu load: %{} time: {} hash: {}", streamManagers.size(), activeConnections, droppedConnections, min, max, mean, systemCpuLoad, System.currentTimeMillis()/1000, hashCode());
 	}
 
 
