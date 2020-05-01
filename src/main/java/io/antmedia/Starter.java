@@ -87,9 +87,12 @@ public class Starter implements IWebRTCEventListerner
 	}
 
 	public void stop() {
+		statManager.stop();
 		for (WebRTCManager webRTCManager : managers) {
 			webRTCManager.stop();
 		}
+		managers.clear();
+		
 	}
 	
 	public IWebRTCEventListerner getListener() {

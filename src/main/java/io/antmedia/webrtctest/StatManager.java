@@ -72,6 +72,9 @@ public class StatManager {
 		}, 10, 10, TimeUnit.SECONDS);
 	}
 
+	public void stop() {
+		executorService.shutdown();
+	}
 
 	private void logStats() {
 		//logger.info("<- Logging stats ->");
