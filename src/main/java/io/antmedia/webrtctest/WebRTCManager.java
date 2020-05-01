@@ -168,7 +168,6 @@ public class WebRTCManager implements Observer, SdpObserver {
 						public void onStateChange() {
 							logger.info("DataChannel State Change for stream Id {} state", streamId);
 							if(WebRTCManager.this.dataChannel != null && WebRTCManager.this.dataChannel.state() == State.CLOSED) {
-								dataChannel.dispose();
 								WebRTCManager.this.dataChannel = null;
 							}
 						}
