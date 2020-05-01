@@ -166,8 +166,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 					dataChannel.registerObserver(new DataChannel.Observer() {
 						@Override
 						public void onStateChange() {
-							logger.info("DataChannel State Change for stream Id {} state:{}", streamId, dataChannel.state());
-							if(dataChannel.state() == State.CLOSED) {
+							logger.info("DataChannel State Change for stream Id {} state", streamId);
+							if(WebRTCManager.this.dataChannel != null && WebRTCManager.this.dataChannel.state() == State.CLOSED) {
 								dataChannel.dispose();
 								WebRTCManager.this.dataChannel = null;
 							}
@@ -558,9 +558,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 			dataChannel.registerObserver(new DataChannel.Observer() {
 				@Override
 				public void onStateChange() {
-					logger.info("DataChannel State Change for stream Id {} state:{}", streamId, dataChannel.state());
-					if(dataChannel.state() == State.CLOSED) {
-						dataChannel.dispose();
+					logger.info("DataChannel State Change for stream Id {}", streamId);
+					if(WebRTCManager.this.dataChannel != null && WebRTCManager.this.dataChannel.state() == State.CLOSED) {
 						WebRTCManager.this.dataChannel = null;
 					}
 				}
