@@ -29,6 +29,7 @@ public class Starter implements IWebRTCEventListerner
 	protected int startingIndex = 0;
 
 	public Starter(String[] args) {
+		System.out.println("~~~~~~~~ Start ("+hashCode()+") ~~~~~~~~");
 		settings.parse(args);
 		statManager = new StatManager(settings.kafkaBrokers);
 		if(settings.mode == Mode.PUBLISHER) {
@@ -72,7 +73,6 @@ public class Starter implements IWebRTCEventListerner
 	}
 
 	public void start() {
-		System.out.println("~~~~~~~~ Start ("+hashCode()+") ~~~~~~~~");
 		managers.get(startingIndex).start();
 		startingIndex++;		
 	}
