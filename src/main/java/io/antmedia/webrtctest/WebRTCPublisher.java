@@ -103,18 +103,22 @@ public class WebRTCPublisher extends StreamManager{
 	}
 
 	public void stopAudio() {
-		logger.info("Stopping audio streaming");
-		audioSenderFuture.cancel(true);
-		if (videoSenderFuture.isCancelled()) {
-			manager.stop();
+		if(!audioSenderFuture.isCancelled()) {
+			logger.info("Stopping audio streaming");
+			audioSenderFuture.cancel(true);
+			if (videoSenderFuture.isCancelled()) {
+				manager.stop();
+			}
 		}
 	}
 
 	public void stopVideo() {
-		logger.info("Stopping video streaming");
-		videoSenderFuture.cancel(true);
-		if (audioSenderFuture.isCancelled()) {
-			manager.stop();
+		if(!videoSenderFuture.isCancelled()) {
+			logger.info("Stopping video streaming");
+			videoSenderFuture.cancel(true);
+			if (audioSenderFuture.isCancelled()) {
+				manager.stop();
+			}
 		}
 	}
 	

@@ -88,6 +88,10 @@ public class WebRTCManager implements Observer, SdpObserver {
 	private Settings settings;
 
 	private DataChannel dataChannel;
+	
+	JavaAudioDeviceModule adm;
+
+	private AudioSource audioSource;
 
 	public WebRTCManager(String streamId, Settings settings) 
 	{
@@ -149,7 +153,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 				peerConnection.addTrack(videoTrack, mediaStreamLabels);
 
-				AudioSource audioSource = peerConnectionFactory.createAudioSource(audioConstraints);
+				audioSource = peerConnectionFactory.createAudioSource(audioConstraints);
 				AudioTrack localAudioTrack = peerConnectionFactory.createAudioTrack(AUDIO_TRACK_ID, audioSource);
 
 				peerConnection.addTrack(localAudioTrack, mediaStreamLabels);
@@ -217,8 +221,6 @@ public class WebRTCManager implements Observer, SdpObserver {
 		PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
 		options.disableNetworkMonitor = true;
 		options.networkIgnoreMask = Options.ADAPTER_TYPE_LOOPBACK;
-
-		JavaAudioDeviceModule adm;
 
 		if(settings.mode == Mode.PUBLISHER) {
 			adm = (JavaAudioDeviceModule)JavaAudioDeviceModule.builder(null)
@@ -329,11 +331,35 @@ public class WebRTCManager implements Observer, SdpObserver {
 		signallingExecutor.execute(() -> {
 			websocket.close();
 			logger.info("WebRTCManager stopping. Hash: {}", WebRTCManager.this.hashCode());
-			peerConnection.dispose();
-			peerConnection = null;
-			peerConnectionFactory.dispose();
-			peerConnectionFactory = null;
+			
 			streamManager.stop();
+			
+			if(dataChannel != null) {
+				dataChannel.close();
+				dataChannel.dispose();
+				dataChannel = null;
+			}
+			
+			if (peerConnection != null) {
+				logger.info("Closing and disposing peer connection for stream Id {} for {}", streamId, this.hashCode());
+				peerConnection.dispose();
+				peerConnection = null;
+			}
+
+			if (peerConnectionFactory != null) {
+				logger.info("Closing peer connection factory for {}", streamId);
+				peerConnectionFactory.dispose();
+				peerConnectionFactory = null;
+			}
+			
+			if (audioSource != null) {
+				logger.info("Disposing audio source for stream Id {}", streamId);
+				audioSource.dispose();
+				audioSource = null;
+			}
+			
+			adm.release();
+			
 			logger.info("WebRTCManager stopping leaving for {} Hash: {}", streamId, WebRTCManager.this.hashCode());
 		});
 	}
