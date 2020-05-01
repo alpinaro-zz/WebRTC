@@ -333,7 +333,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 			peerConnection = null;
 			peerConnectionFactory.dispose();
 			peerConnectionFactory = null;
-			logger.info("WebRTCManager stopping leaving. Hash: {}", WebRTCManager.this.hashCode());
+			streamManager.stop();
+			logger.info("WebRTCManager stopping leaving for {} Hash: {}", streamId, WebRTCManager.this.hashCode());
 		});
 	}
 
