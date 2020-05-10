@@ -2,6 +2,7 @@ package io.antmedia.webrtctest;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ContainerProvider;
@@ -34,9 +35,18 @@ public class WebsocketClientEndpoint {
 	private Session session;
 	private URI uri;
 	private ClientManager websocketClient;
+	private Settings settings;
 
-	public WebsocketClientEndpoint(URI endpointURI) {
-		this.uri = endpointURI;
+	public WebsocketClientEndpoint(Settings settings) {
+		String unsecure = "ws://"+settings.webSockAdr+":"+settings.port+"/WebRTCAppEE/websocket";
+		String secure = "wss://"+settings.webSockAdr+":"+settings.port+"/WebRTCAppEE/websocket";
+		try {
+			uri = new URI(settings.isSequre ? secure : unsecure);
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+		
+		this.settings = settings;
 	}
 
 	public void connect() {
@@ -59,7 +69,7 @@ public class WebsocketClientEndpoint {
 		logger.info("websocket opened {}", this.hashCode());
 		this.session = session;
 		
-		if(Settings.instance.mode == Mode.PUBLISHER) {
+		if(settings.mode == Mode.PUBLISHER) {
 			sendPublish(webrtcManager.getStreamId());
 		}
 		else {
@@ -104,7 +114,7 @@ public class WebsocketClientEndpoint {
 					!cmd.equals(WebSocketConstants.PONG_COMMAND)) 
 			{
 				logger.error("Incoming message:{}" , message);
-				sendNoStreamIdSpecifiedError();
+				//sendNoStreamIdSpecifiedError();
 				return;
 			}
 			if (cmd.equals(WebSocketConstants.START_COMMAND))  
@@ -206,7 +216,7 @@ public class WebsocketClientEndpoint {
 		JSONObject jsonResponse = new JSONObject();
 		jsonResponse.put(WebSocketConstants.COMMAND, WebSocketConstants.PUBLISH_COMMAND);
 		jsonResponse.put(WebSocketConstants.STREAM_ID, streamId);
-		jsonResponse.put(WebSocketConstants.VIDEO, !Settings.instance.audioOnly);
+		jsonResponse.put(WebSocketConstants.VIDEO, !settings.audioOnly);
 		jsonResponse.put(WebSocketConstants.AUDIO, true);
 		sendMessage(jsonResponse.toJSONString());	
 	}

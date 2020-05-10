@@ -2,13 +2,13 @@ package io.antmedia.webrtctest;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +20,7 @@ import org.webrtc.AudioTrack;
 import org.webrtc.CapturerObserver;
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
+import org.webrtc.Logging;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
 import org.webrtc.PeerConnection;
@@ -31,28 +32,29 @@ import org.webrtc.PeerConnection.SignalingState;
 import org.webrtc.PeerConnectionFactory.Options;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.RtpReceiver;
-import org.webrtc.RtpSender;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
-import org.webrtc.SoftwareVideoDecoderFactory;
-import org.webrtc.VideoDecoderFactory;
-import org.webrtc.VideoFrame;
-import org.webrtc.VideoSink;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
+import org.webrtc.DataChannel.Buffer;
+import org.webrtc.DataChannel.State;
 import org.webrtc.audio.JavaAudioDeviceModule;
 import org.webrtc.audio.WebRtcAudioRecord;
 import org.webrtc.audio.WebRtcAudioTrack;
 
+import io.antmedia.enterprise.webrtc.codec.VirtualVideoDecoder;
+import io.antmedia.enterprise.webrtc.codec.VirtualVideoDecoderFactory;
 import io.antmedia.enterprise.webrtc.codec.VirtualVideoEncoder;
 import io.antmedia.enterprise.webrtc.codec.VirtualVideoEncoderFactory;
+import io.antmedia.webrtc.VideoCodec;
 import io.antmedia.webrtc.api.IAudioRecordListener;
 import io.antmedia.webrtc.api.IAudioTrackListener;
 
 
 public class WebRTCManager implements Observer, SdpObserver {
 	private Logger logger = LoggerFactory.getLogger(WebRTCManager.class);
+	
 	String stunServerUri = "stun:stun.l.google.com:19302";
 	private PeerConnectionFactory peerConnectionFactory;
 	private PeerConnection peerConnection;
@@ -84,27 +86,20 @@ public class WebRTCManager implements Observer, SdpObserver {
 	public static final String AUDIO_TRACK_ID = "ARDAMSa0";
 
 	private ScheduledExecutorService signallingExecutor = Executors.newSingleThreadScheduledExecutor();
+	private Settings settings;
 
+	private DataChannel dataChannel;
+	
+	JavaAudioDeviceModule adm;
 
-	public WebRTCManager(String streamId) 
+	private AudioSource audioSource;
+
+	public WebRTCManager(String streamId, Settings settings) 
 	{
+		this.settings = settings;
 		this.setStreamId(streamId);
-		String unsecure = "ws://"+Settings.instance.webSockAdr+":"+Settings.instance.port+"/WebRTCAppEE/websocket";
-		String secure = "wss://"+Settings.instance.webSockAdr+":"+Settings.instance.port+"/WebRTCAppEE/websocket";
 
-
-		URI uri = null;
-
-		try {
-			uri = new URI(Settings.instance.isSequre ? secure : unsecure);
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-
-		System.out.println(uri);
-
-
-		websocket = new WebsocketClientEndpoint(uri);
+		websocket = new WebsocketClientEndpoint(settings);
 		websocket.setManager(this);
 	}
 	
@@ -159,50 +154,75 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 				peerConnection.addTrack(videoTrack, mediaStreamLabels);
 
-				AudioSource audioSource = peerConnectionFactory.createAudioSource(audioConstraints);
+				audioSource = peerConnectionFactory.createAudioSource(audioConstraints);
 				AudioTrack localAudioTrack = peerConnectionFactory.createAudioTrack(AUDIO_TRACK_ID, audioSource);
 
 				peerConnection.addTrack(localAudioTrack, mediaStreamLabels);
 
 				capturerObserver = videoSource.getCapturerObserver();
+				
+				if(settings.dataChannel) {
+					this.dataChannel = peerConnection.createDataChannel(streamId, new DataChannel.Init());
+
+					dataChannel.registerObserver(new DataChannel.Observer() {
+						@Override
+						public void onStateChange() {
+							logger.info("DataChannel State Change for stream Id {} state", streamId);
+							if(WebRTCManager.this.dataChannel != null && WebRTCManager.this.dataChannel.state() == State.CLOSED) {
+								WebRTCManager.this.dataChannel = null;
+							}
+						}
+
+						@Override
+						public void onMessage(Buffer buffer) {
+							logger.debug("DataChannel message received stream Id {}", streamId);
+							byte[] data = new byte[buffer.data.capacity()];
+							buffer.data.get(data);
+							listener.onDataChannelMessage(new String(data));
+						}
+
+						@Override
+						public void onBufferedAmountChange(long previousAmount) {
+							logger.debug("DataChannel Buffered Amount Change Id {}", streamId);
+						}
+					});
+				}
 			}
+
+			Logging.enableLogToDebugOutput(settings.logLevel);
 
 		});
 	}
 
 	public void setRemoteDescription(SessionDescription sdp) {
+		System.out.println("******************\nsetRemoteDescription\n"+sdp.description+"\n**************************");
 		signallingExecutor.execute(() -> {
-			System.out.println("0 WebRTCManager.setRemoteDescription()");
 			if (peerConnection != null) {
 				peerConnection.setRemoteDescription(WebRTCManager.this, sdp);
 			}
 			else {
 				logger.warn("Peer connection is null. It cannot add ice candidate for stream Id {}", getStreamId());
 			}
-			System.out.println("1 WebRTCManager.setRemoteDescription()");
 		});
 	}
 
 
 	private PeerConnectionFactory createPeerConnectionFactory(){
-
-
 		PeerConnectionFactory.initialize(
 				PeerConnectionFactory.InitializationOptions.builder()
 				.setFieldTrials(null)
 				.createInitializationOptions());
 
-		encoderFactory = new VirtualVideoEncoderFactory();
+		
+		encoderFactory = new VirtualVideoEncoderFactory(settings.codec == VideoCodec.H264, settings.codec == VideoCodec.VP8, settings.codec == VideoCodec.H265);
 
-		decoderFactory = new VirtualVideoDecoderFactory(); 
+		decoderFactory = new VirtualVideoDecoderFactory(settings.codec == VideoCodec.H264, settings.codec == VideoCodec.VP8, settings.codec == VideoCodec.H265); 
 
 		PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
 		options.disableNetworkMonitor = true;
 		options.networkIgnoreMask = Options.ADAPTER_TYPE_LOOPBACK;
 
-		JavaAudioDeviceModule adm;
-
-		if(Settings.instance.mode == Mode.PUBLISHER) {
+		if(settings.mode == Mode.PUBLISHER) {
 			adm = (JavaAudioDeviceModule)JavaAudioDeviceModule.builder(null)
 					.setUseHardwareAcousticEchoCanceler(false)
 					.setUseHardwareNoiseSuppressor(false)
@@ -311,11 +331,36 @@ public class WebRTCManager implements Observer, SdpObserver {
 		signallingExecutor.execute(() -> {
 			websocket.close();
 			logger.info("WebRTCManager stopping. Hash: {}", WebRTCManager.this.hashCode());
-			peerConnection.dispose();
-			peerConnection = null;
-			peerConnectionFactory.dispose();
-			peerConnectionFactory = null;
-			logger.info("WebRTCManager stopping leaving. Hash: {}", WebRTCManager.this.hashCode());
+			
+			streamManager.stop();
+			
+			if(dataChannel != null) {
+				dataChannel.close();
+				dataChannel.dispose();
+				dataChannel = null;
+			}
+			
+			if (peerConnection != null) {
+				logger.info("Closing and disposing peer connection for stream Id {} for {}", streamId, this.hashCode());
+				peerConnection.dispose();
+				peerConnection = null;
+			}
+
+			if (peerConnectionFactory != null) {
+				logger.info("Closing peer connection factory for {}", streamId);
+				peerConnectionFactory.dispose();
+				peerConnectionFactory = null;
+			}
+			
+			if (audioSource != null) {
+				logger.info("Disposing audio source for stream Id {}", streamId);
+				audioSource.dispose();
+				audioSource = null;
+			}
+			
+			adm.release();
+			
+			logger.info("WebRTCManager stopping leaving for {} Hash: {}", streamId, WebRTCManager.this.hashCode());
 		});
 	}
 
@@ -325,6 +370,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 	@Override
 	public void onCreateSuccess(SessionDescription sdp) {
+
+		System.out.println("******************\nonCreateSuccess\n"+sdp.description+"\n**************************");
 
 		signallingExecutor.execute(() -> {
 			logger.info("0 onCreateSuccess for {}", getStreamId());
@@ -416,7 +463,9 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 	@Override
 	public void onSetFailure(String error) {
-		logger.info("onSetFailure: {} " , error);		
+		logger.info("!!!!!!!!!!!\n!!!!!!!!!!! Cannot set remote description: {} Exiting the app" , error);	
+		
+		System.exit(1);
 	}
 
 	@Override
@@ -435,13 +484,13 @@ public class WebRTCManager implements Observer, SdpObserver {
 					return;
 				}
 				connected  = true;
-				if(Settings.instance.mode == Mode.PLAYER) {
+				if(settings.mode == Mode.PLAYER) {
 					streamManager.start();
 					listener.onCompleted();
 				}
 			}
 			else if (newState == IceConnectionState.COMPLETED) {
-				if(Settings.instance.mode == Mode.PUBLISHER) {
+				if(settings.mode == Mode.PUBLISHER) {
 					streamManager.start();
 					listener.onCompleted();
 				}
@@ -506,6 +555,36 @@ public class WebRTCManager implements Observer, SdpObserver {
 	@Override
 	public void onDataChannel(DataChannel dataChannel) {
 		logger.info("onDataChannel for stream Id {}", getStreamId());
+		this.dataChannel = dataChannel;
+		if(settings.dataChannel) {
+			dataChannel.registerObserver(new DataChannel.Observer() {
+				@Override
+				public void onStateChange() {
+					logger.info("DataChannel State Change for stream Id {}", streamId);
+					if(WebRTCManager.this.dataChannel != null && WebRTCManager.this.dataChannel.state() == State.CLOSED) {
+						WebRTCManager.this.dataChannel = null;
+					}
+				}
+
+				@Override
+				public void onMessage(org.webrtc.DataChannel.Buffer buffer) {
+					logger.debug("DataChannel message received stream Id {}", streamId);
+					byte[] data = new byte[buffer.data.capacity()];
+					buffer.data.get(data);
+					listener.onDataChannelMessage(new String(data));
+				}
+
+				@Override
+				public void onBufferedAmountChange(long previousAmount) {
+					logger.debug("DataChannel Buffered Amount Change Id {}", streamId);
+				}
+			});
+		}
+		else {
+			logger.warn("DataChannel is closed because it is not enabled");
+			dataChannel.close();
+			dataChannel.dispose();
+		}
 	}
 
 	@Override
@@ -540,7 +619,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 		websocket.connect();
 	}
 
-	public VirtualH264Decoder getDecoder() {
+	public VirtualVideoDecoder getDecoder() {
 		return decoderFactory.getDecoder();
 	}
 
@@ -550,11 +629,16 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 	public void setListener(IWebRTCEventListerner listener) {
 		this.listener = listener;
-
 	}
 
 	public StreamManager getStreamManager() {
 		return streamManager;
 	}
 
+	public void sendDataChannelMessage(String message) {
+		if(dataChannel != null) {
+			Buffer buffer = new Buffer(ByteBuffer.wrap(message.getBytes()), false);
+			signallingExecutor.execute(() -> dataChannel.send(buffer));
+		}
+	}
 }

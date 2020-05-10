@@ -13,12 +13,33 @@ import org.webrtc.VideoCodecType;
 import org.webrtc.VideoEncoder;
 import org.webrtc.VideoEncoderFactory;
 
+import io.antmedia.webrtctest.Mode;
+import io.antmedia.webrtctest.Settings;
+
 public class VirtualVideoEncoderFactory implements VideoEncoderFactory {
 
 	
 	protected static Logger logger = LoggerFactory.getLogger(VirtualVideoEncoderFactory.class);
 	
 	private VirtualVideoEncoder virtualH264Encoder = new VirtualVideoEncoder();
+	List<VideoCodecInfo> supportedCodecInfos = new ArrayList<>();
+
+	public VirtualVideoEncoderFactory(boolean h264, boolean vp8, boolean h265) {
+		// Generate a list of supported codecs in order of preference:
+		// we support h264 baseline for encoding because it is the one that is supported by all browsers
+
+		// Available encoders can be VP8, VP9, H264 (high profile), and H264 (baseline profile).
+
+		if(h264) {
+			supportedCodecInfos.add(new VideoCodecInfo(VideoCodecType.H264.name(), H264Utils.getDefaultH264Params(false)));
+		}
+		if(vp8) {
+			supportedCodecInfos.add(new VideoCodecInfo(VideoCodecType.VP8.name(), new HashMap<>()));
+		}
+		if (h265) {
+			supportedCodecInfos.add(new VideoCodecInfo(VideoCodecType.H265.name(), new HashMap<>()));
+		}
+	}
 
 	public VirtualVideoEncoder getEncoder() {
 		return this.virtualH264Encoder;
@@ -43,18 +64,11 @@ public class VirtualVideoEncoderFactory implements VideoEncoderFactory {
 	@Override
 	public VideoCodecInfo[] getSupportedCodecs() {
 		
-		List<VideoCodecInfo> supportedCodecInfos = new ArrayList<>();
 		// Generate a list of supported codecs in order of preference:
 		// we support h264 baseline for encoding because it is the one that is supported by all browsers
 
 		// Available encoders can be VP8, VP9, H264 (high profile), and H264 (baseline profile).
 
-		VideoCodecType h264 = VideoCodecType.H264;
-		if (logger.isInfoEnabled()) {
-			logger.info("getSupportedCodecs: {} encoder factory: {}" , h264.name(), this);
-		}
-		supportedCodecInfos.add(new VideoCodecInfo(h264.name(), H264Utils.getDefaultH264Params(false)));
-		supportedCodecInfos.add(new VideoCodecInfo(VideoCodecType.H265.name(), new HashMap<>()));
 		return supportedCodecInfos.toArray(new VideoCodecInfo[supportedCodecInfos.size()]);
 	}
 

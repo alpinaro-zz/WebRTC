@@ -41,7 +41,11 @@ public class StatManager {
 	private String instanceId;
 	
 	private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+	private String kafkaBrokers;
 	
+	public StatManager(String kafkaBrokers) {
+		this.kafkaBrokers = kafkaBrokers;
+	}
 	
 	public static Producer<Long, String> createProducer(String kafkaBrokers, String clientId) {
 		Properties props = new Properties();
@@ -54,23 +58,26 @@ public class StatManager {
 	
 	public void start() {
 		
-		if (Settings.instance.kafkaBrokers != null) {
-			producer = createProducer(Settings.instance.kafkaBrokers, String.valueOf(this.hashCode()));
+		if (kafkaBrokers != null) {
+			producer = createProducer(kafkaBrokers, String.valueOf(this.hashCode()));
 			instanceId = UUID.randomUUID().toString();
 		}
 
 		executorService.scheduleWithFixedDelay(() -> {
 			logStats();
 			if (!streamsRunning) {
-				logger.info("Seems all streams are stopped and breaking the stats loop");
+				logger.info("Seems all streams are stopped and breaking the stats loop hash: {}", hashCode());
 				
 			}
 		}, 10, 10, TimeUnit.SECONDS);
 	}
 
+	public void stop() {
+		executorService.shutdown();
+	}
 
 	private void logStats() {
-		logger.info("<- Logging stats ->");
+		//logger.info("<- Logging stats ->");
 		long total = 0; 
 		int min = Integer.MAX_VALUE;
 		int max = Integer.MIN_VALUE;
@@ -139,7 +146,7 @@ public class StatManager {
 			mean = (int) (total/numberOfClientsForFPSCalculation);
 		}
 		
-		logger.info("stats:\tNumber of Clients:{} Active Connections:{} Dropped Connections:{} Received Min frame period:{}ms, Max frame period: {}ms, Mean frame period:{}ms, cpu load: %{} time: {}", streamManagers.size(), activeConnections, droppedConnections, min, max, mean, systemCpuLoad, System.currentTimeMillis()/1000);
+		logger.info("stats :\tNumber of Clients:{} Active Connections:{} Dropped Connections:{} Received Min frame period:{}ms, Max frame period: {}ms, Mean frame period:{}ms, cpu load: %{} time: {} hash: {}", streamManagers.size(), activeConnections, droppedConnections, min, max, mean, systemCpuLoad, System.currentTimeMillis()/1000, hashCode());
 	}
 
 

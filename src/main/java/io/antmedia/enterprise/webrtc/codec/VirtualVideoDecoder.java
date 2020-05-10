@@ -1,9 +1,6 @@
-package io.antmedia.webrtctest;
+package io.antmedia.enterprise.webrtc.codec;
 
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import org.slf4j.Logger;
@@ -13,9 +10,11 @@ import org.webrtc.JavaI420Buffer;
 import org.webrtc.VideoCodecStatus;
 import org.webrtc.VideoDecoder;
 
-public class VirtualH264Decoder implements VideoDecoder {
+import io.antmedia.webrtctest.IPacketListener;
 
-		protected Logger logger = LoggerFactory.getLogger(VirtualH264Decoder.class);
+public class VirtualVideoDecoder implements VideoDecoder {
+
+		protected Logger logger = LoggerFactory.getLogger(VirtualVideoDecoder.class);
 		private Callback decodeCallback;
 		private JavaI420Buffer i420Buffer;
 		private long lastKeyFrameRequestTimeMs = 0;
@@ -60,14 +59,6 @@ public class VirtualH264Decoder implements VideoDecoder {
 		@Override
 		public VideoCodecStatus decode(EncodedImage frame, DecodeInfo info) 
 		{
-			frame.buffer.rewind();
-			
-			//logger.info("decode encoded image {},  {}, {}, {}, {}", frame.buffer.get(0), frame.buffer.get(1), frame.buffer.get(2), 
-			//		frame.buffer.get(3),
-			//		frame.buffer.get(4));
-			
-			byte[] data = new byte[frame.buffer.limit()];
-			frame.buffer.get(data);
 			for (IPacketListener listener : listeners) {
 				listener.onEncodedImage(frame);
 			}

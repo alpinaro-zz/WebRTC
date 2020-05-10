@@ -37,7 +37,9 @@ import org.bytedeco.javacpp.avutil.AVRational;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MP4Reader{
+import io.antmedia.webrtc.VideoCodec;
+
+public class FileReader{
 	AVFormatContext inputContext = new AVFormatContext(null);
 	private int videoIndex = -1;
 	private int audioIndex = -1;	
@@ -46,7 +48,7 @@ public class MP4Reader{
 	ArrayList<Frame> audioFrames = new ArrayList();
 	protected int fps = 24;
 	WebRTCManager manager;
-	private Logger logger = LoggerFactory.getLogger(MP4Reader.class);
+	private Logger logger = LoggerFactory.getLogger(FileReader.class);
 
 
 	byte[] extradata;
@@ -57,18 +59,22 @@ public class MP4Reader{
 	private AVRational audioTimebase;
 	public int width;
 	public int height;
-
-	public MP4Reader(String fileName) 
+	
+	private Settings settings;
+		
+	public FileReader(Settings settings) 
 	{
-		this.fileName = fileName; 
+		this.fileName = settings.streamSource; 
+		this.settings = settings;
 	}
 
 	public boolean init()
 	{
 		av_register_all();
 		int ret;
-
-		if ((ret = avformat_open_input(inputContext, fileName, av_find_input_format("mp4"), (AVDictionary) null)) < 0) {
+		String fileExtension = fileName.split("\\.")[1];
+		
+		if ((ret = avformat_open_input(inputContext, fileName, av_find_input_format(fileExtension), (AVDictionary) null)) < 0) {
 			System.err.println("Could not open input file.");
 			close();
 			return false;
@@ -86,11 +92,15 @@ public class MP4Reader{
 
 				int extradatasize = inputContext.streams(i).codec().extradata_size(); 
 
-				extradata = new byte[extradatasize];
-				inputContext.streams(i).codec().extradata().get(extradata);
+				if(extradatasize > 0) {
+					extradata = new byte[extradatasize];
+					inputContext.streams(i).codec().extradata().get(extradata);
+				}
 				
 				this.width = inputContext.streams(i).codec().width();
 				this.height = inputContext.streams(i).codec().height();
+				
+				videoTimebase = inputContext.streams(videoIndex).time_base();
 				break;
 			}
 
@@ -103,14 +113,14 @@ public class MP4Reader{
 
 		if(videoIndex == -1) {
 			logger.error("Media not contains video!");
-			Settings.instance.audioOnly  = true;
+			settings.audioOnly  = true;
 		}
 
 		timeBaseForMS = new AVRational();
 		timeBaseForMS.num(1);
 		timeBaseForMS.den(1000);
 
-		if(!Settings.instance.audioOnly) {
+		if(!settings.audioOnly && settings.codec == VideoCodec.H264) {
 			initVideoBSF();
 		}
 
@@ -163,21 +173,33 @@ public class MP4Reader{
 			read = (ret >= 0);
 
 			if (pkt.stream_index() == videoIndex) {
-				av_bsf_send_packet(bsfContext, pkt);
+				if(settings.codec == VideoCodec.H264) {
+					av_bsf_send_packet(bsfContext, pkt);
 
-				while (av_bsf_receive_packet(bsfContext, pkt) == 0) 
-				{
+					while (av_bsf_receive_packet(bsfContext, pkt) == 0) 
+					{
+						ByteBuffer data = ByteBuffer.allocateDirect(pkt.size());
+						data.put(pkt.data().position(0).limit(pkt.size()).asByteBuffer());
+						long timeStamp = av_rescale_q(pkt.pts(), videoTimebase, timeBaseForMS);
+						videoFrames.add(new Frame(data, timeStamp, (pkt.flags() & AV_PKT_FLAG_KEY)==1));
+					}
+				}
+				else {
 					ByteBuffer data = ByteBuffer.allocateDirect(pkt.size());
-					data.put(pkt.data().position(0).limit(pkt.size()).asByteBuffer());
-					long timeStamp = av_rescale_q(pkt.pts(), videoTimebase, timeBaseForMS);
-					videoFrames.add(new Frame(data, timeStamp, (pkt.flags() & AV_PKT_FLAG_KEY)==1));
+					if(pkt.size() > 0) {
+						data.put(pkt.data().position(0).limit(pkt.size()).asByteBuffer());
+						long timeStamp = av_rescale_q(pkt.pts(), videoTimebase, timeBaseForMS);
+						videoFrames.add(new Frame(data, timeStamp, (pkt.flags() & AV_PKT_FLAG_KEY)==1));
+					}
 				}
 			}
 			else if (pkt.stream_index() == audioIndex) {
 				ByteBuffer data = ByteBuffer.allocateDirect(pkt.size());
-				data.put(pkt.data().position(0).limit(pkt.size()).asByteBuffer());
-				long timeStamp = av_rescale_q(pkt.pts(), audioTimebase, timeBaseForMS);
-				audioFrames.add(new Frame(data, timeStamp, false));
+				if(pkt.size() > 0) {
+					data.put(pkt.data().position(0).limit(pkt.size()).asByteBuffer());
+					long timeStamp = av_rescale_q(pkt.pts(), audioTimebase, timeBaseForMS);
+					audioFrames.add(new Frame(data, timeStamp, false));
+				}
 			}
 		}
 	}
