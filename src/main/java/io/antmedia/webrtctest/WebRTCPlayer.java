@@ -110,6 +110,9 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 					e.printStackTrace();
 				}
 			}
+			else if (settings.codec == VideoCodec.H265 && extension.equalsIgnoreCase("h265")) {
+				fileWriter = new H264Writer(settings.streamSource);
+			}
 		} 
 	}
 
