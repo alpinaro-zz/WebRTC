@@ -68,6 +68,8 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 		if(fileWriter != null) {
 			fileWriter.onFrame(frame);
 		}
+		
+		System.out.println("capture ms ---- > " + frame.captureTimeMs + " system time ----> " + System.currentTimeMillis());
 	}
 	
 

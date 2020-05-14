@@ -202,5 +202,11 @@ public class VirtualVideoEncoder implements VideoEncoder {
 	public void setSendVideo(IVideoPacketSender sendVideo) {
 		this.sendVideo = sendVideo;
 	}
+	
+	
+	@Override
+	public void notifyFrameId(int frameid, long captureTimeNs) {
+		
+	}
 
 }
