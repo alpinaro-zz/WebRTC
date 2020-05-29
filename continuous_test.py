@@ -82,6 +82,7 @@ def doAction():
   return action
   
 def main():
+  sys.stdout = open('file', 'w')
   login()
 
   mainStreamId="test"
