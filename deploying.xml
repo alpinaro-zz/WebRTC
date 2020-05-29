@@ -20,7 +20,10 @@
 		<file>
 			<source>${project.basedir}/README.md</source>
 			<outputDirectory></outputDirectory>
-			<fileMode>0740</fileMode>
+		</file>
+		<file>
+			<source>${project.basedir}/continuous_test.py</source>
+			<outputDirectory></outputDirectory>
 		</file>
 		<file>
 			<source>${project.basedir}/src/test/resources/test.mp4</source>
