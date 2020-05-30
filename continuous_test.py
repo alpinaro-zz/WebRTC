@@ -19,12 +19,12 @@ class TestTool:
     self.streamId = streamId
     self.process = process
 
-def createRtmpPublisher(appName, streamId)
-    process = subprocess.Popen(["ffmpeg", "-re", "-stream_loop", "-1", "-i", "test_264_aac.mp4",
+def createRtmpPublisher(appName, streamId):
+  process = subprocess.Popen(["ffmpeg", "-re", "-stream_loop", "-1", "-i", "test_264_aac.mp4",
     "-codec", "copy", "-f", "flv", "rtmp://localhost/"+appName+"/"+streamId],
     cwd="webrtctest",
-    stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
-  return process 
+    stdin=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+  return process
 
 def createPublisher(streamId):
   process = subprocess.Popen(["java", "-cp", "webrtc-test.jar:libs/*", "-Djava.library.path=libs/native", "io.antmedia.Starter",
@@ -90,18 +90,21 @@ def doAction():
   return action
   
 def main():
-  sys.stdout = open('file', 'w')
+#  sys.stdout = open('file', 'w')
   login()
 
   mainStreamId="test"
   global mainPublisher
   global mainPlayer
+  global rtmpPublisher
   mainPublisher = createPublisher(mainStreamId)
   
   time.sleep(5)
-
+  print("before create rtmp publisher")
   rtmpPublisher = createRtmpPublisher("LiveApp", "rtmp1")
-
+  
+#  time.sleep(5)
+  print("after create rtmp publisher")
   mainPlayer = createPlayer(mainStreamId, "5")
   print ("Time in second\tCPU\tRAM\tStreams\tViewers\tAction")
   for x in range(1000):
@@ -130,6 +133,7 @@ def clear_processes():
     tool.process.kill()
 
 def signal_handler(sig, frame):
+  print("Signal handler is running") 
   clear_processes()
     
   sys.exit(0)
