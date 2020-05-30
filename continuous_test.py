@@ -6,10 +6,12 @@ import sys
 import requests
 import json
 import random
+from random import randint
 
 mainPublisher = None
 mainPlayer = None
 rtmpPublisher = None
+rtspStreamSource = None
 session = requests.Session()
 publishers = []
 players = []
@@ -18,6 +20,9 @@ class TestTool:
   def __init__(self, streamId, process):
     self.streamId = streamId
     self.process = process
+
+
+     
 
 def createRtmpPublisher(appName, streamId):
   process = subprocess.Popen(["ffmpeg", "-re", "-stream_loop", "-1", "-i", "test_264_aac.mp4",
@@ -43,6 +48,19 @@ def createPlayer(streamId, load):
 def login():
   resp = session.post("http://localhost:5080/rest/authenticateUser", json={"email":"test@antmedia.io","password":"testtest"})
   #print(resp)
+
+def createRtspStreamSource(appName, streamId):
+  rtspServerExist = os.path.exists('/usr/local/onvif/happytime-rtsp-server/rtspserver')
+  if rtspServerExist:
+    #run the rtsp server
+    process = subprocess.Popen(["rtspserver"], 
+      cwd="/usr/local/onvif/happytime-rtsp-server/", stdin=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+    #it should be already logged in so that add a rtsp stream source via REST method
+     resp = session.post("http://localhost:5080/rest/request?_path="+appName+"/rest/v2/broadcasts/create?autoStart=true", json={"streamId":streamId ,"type":"streamSource", "streamUrl":"rtsp://127.0.0.1:6554/test.flv"})
+  else:
+    print("rtsp server is not installed. So that rtsp stream source will not be created")
+  
+  return process
 
 def streamInfo(streamId):
   resp = session.get("http://localhost:5080/rest/request?_path=WebRTCAppEE/rest/v2/broadcasts/"+streamId)
@@ -97,14 +115,13 @@ def main():
   global mainPublisher
   global mainPlayer
   global rtmpPublisher
+  global rtspStreamSource
   mainPublisher = createPublisher(mainStreamId)
   
   time.sleep(5)
-  print("before create rtmp publisher")
   rtmpPublisher = createRtmpPublisher("LiveApp", "rtmp1")
-  
-#  time.sleep(5)
-  print("after create rtmp publisher")
+  rtspStreamSource = createRtspStreamSource("LiveApp", "rtspSource"+str(randint(99,99999)))  
+
   mainPlayer = createPlayer(mainStreamId, "5")
   print ("Time in second\tCPU\tRAM\tStreams\tViewers\tAction")
   for x in range(1000):
@@ -125,12 +142,18 @@ def main():
 
 def clear_processes():
   rtmpPublisher.kill()
+  if rtspStreamSource != None: # Checking if the rtspStreamSource is None
+    rtspStreamSource.kill()
+    
+  else:
+    print("rtsp stream source is None")
   mainPublisher.kill()
   mainPlayer.kill()
   for tool in publishers:
     tool.process.kill()
   for tool in players:
     tool.process.kill()
+  
 
 def signal_handler(sig, frame):
   print("Signal handler is running") 
