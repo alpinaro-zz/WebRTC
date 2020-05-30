@@ -30,6 +30,10 @@
 			<outputDirectory></outputDirectory>
 		</file>
 		<file>
+			<source>${project.basedir}/src/test/resources/test_264_aac.mp4</source>
+			<outputDirectory></outputDirectory>
+		</file>
+		<file>
 			<source>${project.basedir}/src/test/resources/test.webm</source>
 			<outputDirectory></outputDirectory>
 		</file>

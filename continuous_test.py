@@ -9,6 +9,7 @@ import random
 
 mainPublisher = None
 mainPlayer = None
+rtmpPublisher = None
 session = requests.Session()
 publishers = []
 players = []
@@ -17,6 +18,13 @@ class TestTool:
   def __init__(self, streamId, process):
     self.streamId = streamId
     self.process = process
+
+def createRtmpPublisher(appName, streamId)
+    process = subprocess.Popen(["ffmpeg", "-re", "-stream_loop", "-1", "-i", "test_264_aac.mp4",
+    "-codec", "copy", "-f", "flv", "rtmp://localhost/"+appName+"/"+streamId],
+    cwd="webrtctest",
+    stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+  return process 
 
 def createPublisher(streamId):
   process = subprocess.Popen(["java", "-cp", "webrtc-test.jar:libs/*", "-Djava.library.path=libs/native", "io.antmedia.Starter",
@@ -92,6 +100,8 @@ def main():
   
   time.sleep(5)
 
+  rtmpPublisher = createRtmpPublisher("LiveApp", "rtmp1")
+
   mainPlayer = createPlayer(mainStreamId, "5")
   print ("Time in second\tCPU\tRAM\tStreams\tViewers\tAction")
   for x in range(1000):
@@ -111,6 +121,7 @@ def main():
 
 
 def clear_processes():
+  rtmpPublisher.kill()
   mainPublisher.kill()
   mainPlayer.kill()
   for tool in publishers:
@@ -124,6 +135,9 @@ def signal_handler(sig, frame):
   sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
+
+#handler for kill command. It's not for -9. It's for just kill
+signal.signal(signal.SIGTERM, signal_handler)
 
 
 main()
