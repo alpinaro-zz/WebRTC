@@ -11,10 +11,13 @@ from random import randint
 mainPublisher = None
 mainPlayer = None
 rtmpPublisher = None
-rtspStreamSource = None
 session = requests.Session()
 publishers = []
 players = []
+
+logfile = 'continous_test_logs'
+
+logOutput = open(logfile,'w+')
 
 class TestTool:
   def __init__(self, streamId, process):
@@ -22,27 +25,25 @@ class TestTool:
     self.process = process
 
 
-     
-
 def createRtmpPublisher(appName, streamId):
   process = subprocess.Popen(["ffmpeg", "-re", "-stream_loop", "-1", "-i", "test_264_aac.mp4",
     "-codec", "copy", "-f", "flv", "rtmp://localhost/"+appName+"/"+streamId],
     cwd="webrtctest",
-    stdin=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+    stdin=open(os.devnull, 'rb'), stdout=logOutput, stderr=logOutput)
   return process
 
 def createPublisher(streamId):
   process = subprocess.Popen(["java", "-cp", "webrtc-test.jar:libs/*", "-Djava.library.path=libs/native", "io.antmedia.Starter",
     "-m", "publisher", "-i", streamId, "-s", "localhost", "-f", "test.mp4", "-r", "true"],
     cwd="webrtctest",
-    stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+    stdout=logOutput, stderr=logOutput)
   return process
 
 def createPlayer(streamId, load):
   process = subprocess.Popen(["java", "-cp", "webrtc-test.jar:libs/*", "-Djava.library.path=libs/native", "io.antmedia.Starter",
     "-i", streamId, "-s", "localhost", "-n", load, "-u", "false"],
     cwd="webrtctest",
-    stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+    stdout=logOutput, stderr=logOutput)
   return process
 
 def login():
@@ -53,10 +54,10 @@ def createRtspStreamSource(appName, streamId):
   rtspServerExist = os.path.exists('/usr/local/onvif/happytime-rtsp-server/rtspserver')
   if rtspServerExist:
     #run the rtsp server
-    process = subprocess.Popen(["rtspserver"], 
-      cwd="/usr/local/onvif/happytime-rtsp-server/", stdin=open(os.devnull, 'wb'), stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+    process = subprocess.Popen(["./rtspserver"], 
+      cwd="/usr/local/onvif/happytime-rtsp-server", stdin=open(os.devnull, 'wb'), stdout=logOutput, stderr=logOutput)
     #it should be already logged in so that add a rtsp stream source via REST method
-     resp = session.post("http://localhost:5080/rest/request?_path="+appName+"/rest/v2/broadcasts/create?autoStart=true", json={"streamId":streamId ,"type":"streamSource", "streamUrl":"rtsp://127.0.0.1:6554/test.flv"})
+    resp = session.post("http://localhost:5080/rest/request?_path="+appName+"/rest/v2/broadcasts/create?autoStart=true", json={"streamId":streamId,"type":"streamSource","streamUrl":"rtsp://127.0.0.1:6554/test.flv"})
   else:
     print("rtsp server is not installed. So that rtsp stream source will not be created")
   
@@ -108,7 +109,7 @@ def doAction():
   return action
   
 def main():
-#  sys.stdout = open('file', 'w')
+ # sys.stdout = open('file', 'w')
   login()
 
   mainStreamId="test"
@@ -120,7 +121,7 @@ def main():
   
   time.sleep(5)
   rtmpPublisher = createRtmpPublisher("LiveApp", "rtmp1")
-  rtspStreamSource = createRtspStreamSource("LiveApp", "rtspSource"+str(randint(99,99999)))  
+  createRtspStreamSource("LiveApp", "rtspSource"+str(randint(99,99999)))  
 
   mainPlayer = createPlayer(mainStreamId, "5")
   print ("Time in second\tCPU\tRAM\tStreams\tViewers\tAction")
@@ -142,11 +143,8 @@ def main():
 
 def clear_processes():
   rtmpPublisher.kill()
-  if rtspStreamSource != None: # Checking if the rtspStreamSource is None
-    rtspStreamSource.kill()
-    
-  else:
-    print("rtsp stream source is None")
+  #try to kill rtsp server if it's running
+  subprocess.call("/bin/bash -c \"kill $(ps aux | grep 'rtspserver' | awk '{print $2}')\"", shell=True, stdout=logOutput, stderr=logOutput)
   mainPublisher.kill()
   mainPlayer.kill()
   for tool in publishers:
