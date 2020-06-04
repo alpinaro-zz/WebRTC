@@ -95,6 +95,15 @@ public class Starter implements IWebRTCEventListerner
 		System.out.println("~~~~~~~~ Stop ("+hashCode()+")~~~~~~~~");
 	}
 	
+	public boolean isStopped() {
+		for (WebRTCManager webRTCManager : managers) {
+			if (webRTCManager.isStopped()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public IWebRTCEventListerner getListener() {
 		return listener;
 	}

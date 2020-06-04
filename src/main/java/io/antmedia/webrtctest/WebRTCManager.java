@@ -638,4 +638,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 			signallingExecutor.execute(() -> dataChannel.send(buffer));
 		}
 	}
+	
+	public boolean isStopped() {
+		return isStopped;
+	}
 }
