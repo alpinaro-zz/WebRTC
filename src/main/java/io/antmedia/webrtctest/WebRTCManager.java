@@ -328,38 +328,46 @@ public class WebRTCManager implements Observer, SdpObserver {
 		isStopped = true;
 
 		signallingExecutor.execute(() -> {
-			websocket.close();
-			logger.info("WebRTCManager stopping. Hash: {}", WebRTCManager.this.hashCode());
-			
-			streamManager.stop();
-			
-			if(dataChannel != null) {
-				dataChannel.close();
-				dataChannel.dispose();
-				dataChannel = null;
+			try {
+				websocket.close();
+				logger.info("WebRTCManager stopping. Hash: {}", WebRTCManager.this.hashCode());
+				
+				streamManager.stop();
+				
+				logger.info("Checking data channel for stream: {}", streamId);
+				if(dataChannel != null ) {
+					logger.info("data channel state: {} for stream id: {}", dataChannel.state(), streamId);
+					dataChannel.close();
+					dataChannel.dispose();
+					dataChannel = null;
+				}
+				
+				if (peerConnection != null) {
+					logger.info("Closing and disposing peer connection for stream Id {} for {}", streamId, this.hashCode());
+					peerConnection.dispose();
+					peerConnection = null;
+				}
+	
+				if (peerConnectionFactory != null) {
+					logger.info("Closing peer connection factory for {}", streamId);
+					peerConnectionFactory.dispose();
+					peerConnectionFactory = null;
+				}
+				
+				if (audioSource != null) {
+					logger.info("Disposing audio source for stream Id {}", streamId);
+					audioSource.dispose();
+					audioSource = null;
+				}
+				
+				logger.info("Releasing adm for stream: {}", streamId);
+				adm.release();
+				
+				logger.info("WebRTCManager stopping leaving for {} Hash: {}", streamId, WebRTCManager.this.hashCode());
 			}
-			
-			if (peerConnection != null) {
-				logger.info("Closing and disposing peer connection for stream Id {} for {}", streamId, this.hashCode());
-				peerConnection.dispose();
-				peerConnection = null;
+			catch (Exception e) {
+				e.printStackTrace();
 			}
-
-			if (peerConnectionFactory != null) {
-				logger.info("Closing peer connection factory for {}", streamId);
-				peerConnectionFactory.dispose();
-				peerConnectionFactory = null;
-			}
-			
-			if (audioSource != null) {
-				logger.info("Disposing audio source for stream Id {}", streamId);
-				audioSource.dispose();
-				audioSource = null;
-			}
-			
-			adm.release();
-			
-			logger.info("WebRTCManager stopping leaving for {} Hash: {}", streamId, WebRTCManager.this.hashCode());
 		});
 	}
 
@@ -557,7 +565,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 			dataChannel.registerObserver(new DataChannel.Observer() {
 				@Override
 				public void onStateChange() {
-					logger.info("DataChannel State Change for stream Id {}", streamId);
+					logger.info("DataChannel State Change for stream Id {} state: {} ", streamId, WebRTCManager.this.dataChannel.state());
 					if(WebRTCManager.this.dataChannel != null && WebRTCManager.this.dataChannel.state() == State.CLOSED) {
 						WebRTCManager.this.dataChannel = null;
 					}
