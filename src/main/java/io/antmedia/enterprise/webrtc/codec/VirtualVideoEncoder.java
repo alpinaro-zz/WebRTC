@@ -203,7 +203,6 @@ public class VirtualVideoEncoder implements VideoEncoder {
 		this.sendVideo = sendVideo;
 	}
 	
-	
 	@Override
 	public void notifyFrameId(int frameid, long captureTimeNs) {
 		
