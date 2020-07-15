@@ -1,13 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	 
 	<parent>
 		<groupId>io.antmedia</groupId>
 		<artifactId>parent</artifactId>
 		<version>2.1.0-SNAPSHOT</version>
+		<relativePath></relativePath>
 	</parent>
+	 
+	
+	<modelVersion>4.0.0</modelVersion>
 	 
 	<groupId>io.antmedia</groupId>
 	<artifactId>webrtctest</artifactId>
@@ -44,6 +46,7 @@
         </repository>
     </repositories>
 
+
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -55,48 +58,55 @@
 			<groupId>javax.websocket</groupId>
 			<artifactId>javax.websocket-api</artifactId>
 			<version>1.1</version>
+			 <scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
 			<version>1.1</version>
+			 <scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>jsr305</artifactId>
 			<version>3.0.2</version>
+			 <scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.25</version>
+			 <scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-jdk14</artifactId>
 			<version>1.7.25</version>
+			 <scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.bytedeco.javacpp-presets</groupId>
 			<artifactId>ffmpeg-platform</artifactId>
 			<version>4.1-1.4.4</version>
-			<scope>provided</scope>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.tyrus.bundles</groupId>
 			<artifactId>tyrus-standalone-client</artifactId>
 			<version>1.15</version>
+			 <scope>compile</scope>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.kafka</groupId>
 		    <artifactId>kafka-streams</artifactId>
+		     <scope>compile</scope>
         </dependency>
-       <dependency>
-			<groupId>io.antmedia</groupId>
-			<artifactId>ant-media-server-common</artifactId>
-			<version>${project.parent.version}</version>
-			<scope>provided</scope>
-		</dependency>
+        <dependency>
+            <groupId>io.antmedia</groupId>
+            <artifactId>ant-media-server-common</artifactId>
+            <version>${project.parent.version}</version>
+            <scope>provided</scope>
+        </dependency>
 	</dependencies>
 	<build>
 	 <testResources>
@@ -114,6 +124,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
+				 <version>2.10</version>
 				<executions>
 					<execution>
 						<id>copy-dependencies</id>
@@ -122,9 +133,9 @@
 							<goal>copy-dependencies</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>
-								${project.build.directory}/libs
-							</outputDirectory>
+							<outputDirectory>${project.build.directory}/libs</outputDirectory>
+							<includeScope>compile</includeScope>
+							<excludeScope>provided</excludeScope>
 							<excludeTransitive>false</excludeTransitive>
 						</configuration>
 					</execution>

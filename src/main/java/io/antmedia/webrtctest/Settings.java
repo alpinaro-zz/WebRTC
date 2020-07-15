@@ -2,6 +2,8 @@ package io.antmedia.webrtctest;
 
 import org.webrtc.Logging.Severity;
 
+import io.antmedia.webrtc.VideoCodec;
+
 public class Settings {
 
 	String webSockAdr = "localhost";
@@ -104,14 +106,17 @@ public class Settings {
 	    }
 	    else if(flag.charAt(1) == 'c') {
 	        String strCodec = value;
-	        if(strCodec.contentEquals("h264")){
+	        if(strCodec.equalsIgnoreCase("h264")){
 	            codec = VideoCodec.H264;
 	        }
-	        else if(strCodec.contentEquals("VP8")){
-	        	codec = VideoCodec.VP8;
+	        else if(strCodec.equalsIgnoreCase("VP8")){
+	        		codec = VideoCodec.VP8;
+	        }
+	        else if (strCodec.equalsIgnoreCase("h265")) {
+	        		codec = VideoCodec.H265;
 	        }
 	        else {
-	            System.out.println("undefined codec:"+strCodec);
+	            System.err.println("undefined codec:"+strCodec);
 	            return false;
 	        }
 	    }

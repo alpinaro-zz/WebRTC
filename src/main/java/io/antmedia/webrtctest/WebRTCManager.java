@@ -47,6 +47,7 @@ import io.antmedia.enterprise.webrtc.codec.VirtualVideoDecoder;
 import io.antmedia.enterprise.webrtc.codec.VirtualVideoDecoderFactory;
 import io.antmedia.enterprise.webrtc.codec.VirtualVideoEncoder;
 import io.antmedia.enterprise.webrtc.codec.VirtualVideoEncoderFactory;
+import io.antmedia.webrtc.VideoCodec;
 import io.antmedia.webrtc.api.IAudioRecordListener;
 import io.antmedia.webrtc.api.IAudioTrackListener;
 
@@ -201,7 +202,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 	}
 
 	public void setRemoteDescription(SessionDescription sdp) {
-		//System.out.println("******************\nsetRemoteDescription\n"+sdp.description+"\n**************************");
+		System.out.println("******************\nsetRemoteDescription\n"+sdp.description+"\n**************************");
 		signallingExecutor.execute(() -> {
 			if (peerConnection != null) {
 				peerConnection.setRemoteDescription(WebRTCManager.this, sdp);
@@ -220,9 +221,9 @@ public class WebRTCManager implements Observer, SdpObserver {
 				.createInitializationOptions());
 
 		
-		encoderFactory = new VirtualVideoEncoderFactory(settings.codec == VideoCodec.H264, settings.codec == VideoCodec.VP8);
+		encoderFactory = new VirtualVideoEncoderFactory(settings.codec == VideoCodec.H264, settings.codec == VideoCodec.VP8, settings.codec == VideoCodec.H265);
 
-		decoderFactory = new VirtualVideoDecoderFactory(settings.codec == VideoCodec.H264, settings.codec == VideoCodec.VP8); 
+		decoderFactory = new VirtualVideoDecoderFactory(settings.codec == VideoCodec.H264, settings.codec == VideoCodec.VP8, settings.codec == VideoCodec.H265); 
 
 		PeerConnectionFactory.Options options = new PeerConnectionFactory.Options();
 		options.disableNetworkMonitor = true;
@@ -385,7 +386,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 	@Override
 	public void onCreateSuccess(SessionDescription sdp) {
 
-		//System.out.println("******************\nonCreateSuccess\n"+sdp.description+"\n**************************");
+		System.out.println("******************\nonCreateSuccess\n"+sdp.description+"\n**************************");
 
 		signallingExecutor.execute(() -> {
 			logger.info("0 onCreateSuccess for {}", getStreamId());
@@ -477,7 +478,9 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 	@Override
 	public void onSetFailure(String error) {
-		logger.info("onSetFailure: {} " , error);		
+		logger.info("!!!!!!!!!!!\n!!!!!!!!!!! Cannot set remote description: {} Exiting the app" , error);	
+		
+		System.exit(1);
 	}
 
 	@Override

@@ -16,12 +16,15 @@ public class VirtualVideoDecoderFactory implements VideoDecoderFactory{
 
 	List<VideoCodecInfo> supportedCodecInfos = new ArrayList<>();
 
-	public VirtualVideoDecoderFactory(boolean h264, boolean vp8) {
+	public VirtualVideoDecoderFactory(boolean h264, boolean vp8, boolean h265) {
 		if(h264) {
 			supportedCodecInfos.add(new VideoCodecInfo(VideoCodecType.H264.name(), H264Utils.getDefaultH264Params(false)));
 		}
 		if(vp8) {
 			supportedCodecInfos.add(new VideoCodecInfo(VideoCodecType.VP8.name(), new HashMap<>()));
+		}
+		if (h265) {
+			supportedCodecInfos.add(new VideoCodecInfo(VideoCodecType.H265.name(), new HashMap<>()));
 		}
 	}
 	

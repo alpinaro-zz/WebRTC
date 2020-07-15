@@ -15,7 +15,6 @@ import org.webrtc.VideoEncoderFactory;
 
 import io.antmedia.webrtctest.Mode;
 import io.antmedia.webrtctest.Settings;
-import io.antmedia.webrtctest.VideoCodec;
 
 public class VirtualVideoEncoderFactory implements VideoEncoderFactory {
 
@@ -25,7 +24,7 @@ public class VirtualVideoEncoderFactory implements VideoEncoderFactory {
 	private VirtualVideoEncoder virtualH264Encoder = new VirtualVideoEncoder();
 	List<VideoCodecInfo> supportedCodecInfos = new ArrayList<>();
 
-	public VirtualVideoEncoderFactory(boolean h264, boolean vp8) {
+	public VirtualVideoEncoderFactory(boolean h264, boolean vp8, boolean h265) {
 		// Generate a list of supported codecs in order of preference:
 		// we support h264 baseline for encoding because it is the one that is supported by all browsers
 
@@ -36,6 +35,9 @@ public class VirtualVideoEncoderFactory implements VideoEncoderFactory {
 		}
 		if(vp8) {
 			supportedCodecInfos.add(new VideoCodecInfo(VideoCodecType.VP8.name(), new HashMap<>()));
+		}
+		if (h265) {
+			supportedCodecInfos.add(new VideoCodecInfo(VideoCodecType.H265.name(), new HashMap<>()));
 		}
 	}
 
@@ -61,6 +63,12 @@ public class VirtualVideoEncoderFactory implements VideoEncoderFactory {
 
 	@Override
 	public VideoCodecInfo[] getSupportedCodecs() {
+		
+		// Generate a list of supported codecs in order of preference:
+		// we support h264 baseline for encoding because it is the one that is supported by all browsers
+
+		// Available encoders can be VP8, VP9, H264 (high profile), and H264 (baseline profile).
+
 		return supportedCodecInfos.toArray(new VideoCodecInfo[supportedCodecInfos.size()]);
 	}
 

@@ -37,6 +37,8 @@ import org.bytedeco.javacpp.avutil.AVRational;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.antmedia.webrtc.VideoCodec;
+
 public class FileReader{
 	AVFormatContext inputContext = new AVFormatContext(null);
 	private int videoIndex = -1;

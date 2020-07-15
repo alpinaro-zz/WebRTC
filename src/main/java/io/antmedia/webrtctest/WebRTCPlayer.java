@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webrtc.EncodedImage;
 
+import io.antmedia.webrtc.VideoCodec;
 import io.antmedia.webrtctest.filewriter.H264Writer;
 import io.antmedia.webrtctest.filewriter.IFileWriter;
 import io.antmedia.webrtctest.filewriter.VP8Writer;
@@ -67,6 +68,8 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 		if(fileWriter != null) {
 			fileWriter.onFrame(frame);
 		}
+		
+		System.out.println("capture ms ---- > " + frame.captureTimeMs + " system time ----> " + System.currentTimeMillis());
 	}
 	
 
@@ -108,6 +111,9 @@ public class WebRTCPlayer extends StreamManager implements IPacketListener{
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+			}
+			else if (settings.codec == VideoCodec.H265 && extension.equalsIgnoreCase("h265")) {
+				fileWriter = new H264Writer(settings.streamSource);
 			}
 		} 
 	}
