@@ -6,7 +6,8 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
-import org.bytedeco.javacpp.avcodec.AVCodecContext;
+import org.bytedeco.ffmpeg.avcodec.AVCodecContext;
+
 
 public class OpusPlayer {
 	AVCodecContext codecContext;

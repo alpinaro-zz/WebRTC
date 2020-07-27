@@ -1,39 +1,15 @@
 package io.antmedia.webrtctest;
 
-import static org.bytedeco.javacpp.avcodec.av_bsf_alloc;
-import static org.bytedeco.javacpp.avcodec.av_bsf_get_by_name;
-import static org.bytedeco.javacpp.avcodec.av_bsf_init;
-import static org.bytedeco.javacpp.avcodec.av_bsf_receive_packet;
-import static org.bytedeco.javacpp.avcodec.av_bsf_send_packet;
-import static org.bytedeco.javacpp.avcodec.avcodec_parameters_copy;
-import static org.bytedeco.javacpp.avcodec.AV_CODEC_ID_OPUS;
-import static org.bytedeco.javacpp.avcodec.AV_PKT_FLAG_KEY;
-import static org.bytedeco.javacpp.avformat.AVFMT_NOFILE;
-import static org.bytedeco.javacpp.avformat.av_dump_format;
-import static org.bytedeco.javacpp.avformat.av_find_input_format;
-import static org.bytedeco.javacpp.avformat.av_read_frame;
-import static org.bytedeco.javacpp.avformat.av_register_all;
-import static org.bytedeco.javacpp.avformat.avformat_close_input;
-import static org.bytedeco.javacpp.avformat.avformat_find_stream_info;
-import static org.bytedeco.javacpp.avformat.avformat_free_context;
-import static org.bytedeco.javacpp.avformat.avformat_open_input;
-import static org.bytedeco.javacpp.avutil.AVMEDIA_TYPE_AUDIO;
-import static org.bytedeco.javacpp.avutil.AVMEDIA_TYPE_VIDEO;
-
-import static org.bytedeco.javacpp.avutil.av_rescale_q;
+import static org.bytedeco.ffmpeg.global.avcodec.*;
+import static org.bytedeco.ffmpeg.global.avformat.*;
+import static org.bytedeco.ffmpeg.global.avutil.*;
+import org.bytedeco.ffmpeg.avcodec.*;
+import org.bytedeco.ffmpeg.avformat.*;
+import org.bytedeco.ffmpeg.avutil.*;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
-import org.bytedeco.javacpp.avcodec.AVBSFContext;
-import org.bytedeco.javacpp.avcodec.AVBitStreamFilter;
-import org.bytedeco.javacpp.avcodec.AVCodec;
-import org.bytedeco.javacpp.avcodec.AVCodecContext;
-import org.bytedeco.javacpp.avcodec.AVCodecParameters;
-import org.bytedeco.javacpp.avcodec.AVPacket;
-import org.bytedeco.javacpp.avformat.AVFormatContext;
-import org.bytedeco.javacpp.avutil.AVDictionary;
-import org.bytedeco.javacpp.avutil.AVRational;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

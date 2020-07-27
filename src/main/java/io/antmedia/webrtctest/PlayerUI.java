@@ -1,21 +1,11 @@
 package io.antmedia.webrtctest;
 
-import static org.bytedeco.javacpp.avcodec.*;
-import static org.bytedeco.javacpp.avcodec.av_init_packet;
-import static org.bytedeco.javacpp.avcodec.av_packet_rescale_ts;
-import static org.bytedeco.javacpp.avcodec.avcodec_alloc_context3;
-import static org.bytedeco.javacpp.avcodec.avcodec_find_decoder;
-import static org.bytedeco.javacpp.avcodec.avcodec_open2;
-import static org.bytedeco.javacpp.avcodec.avcodec_receive_frame;
-import static org.bytedeco.javacpp.avcodec.avcodec_register_all;
-import static org.bytedeco.javacpp.avcodec.avcodec_send_packet;
-import static org.bytedeco.javacpp.avformat.av_register_all;
-import static org.bytedeco.javacpp.avutil.AVERROR_EOF;
-import static org.bytedeco.javacpp.avutil.AV_LOG_VERBOSE;
-import static org.bytedeco.javacpp.avutil.AV_PIX_FMT_YUV420P;
-import static org.bytedeco.javacpp.avutil.av_frame_alloc;
-import static org.bytedeco.javacpp.avutil.av_log_set_level;
-import static org.bytedeco.javacpp.presets.avutil.AVERROR_EAGAIN;
+import static org.bytedeco.ffmpeg.global.avcodec.*;
+import static org.bytedeco.ffmpeg.global.avformat.*;
+import static org.bytedeco.ffmpeg.global.avutil.*;
+import org.bytedeco.ffmpeg.avcodec.*;
+import org.bytedeco.ffmpeg.avformat.*;
+import org.bytedeco.ffmpeg.avutil.*;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -25,11 +15,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import org.bytedeco.javacpp.BytePointer;
-import org.bytedeco.javacpp.avcodec.AVCodec;
-import org.bytedeco.javacpp.avcodec.AVCodecContext;
-import org.bytedeco.javacpp.avcodec.AVPacket;
-import org.bytedeco.javacpp.avutil.AVDictionary;
-import org.bytedeco.javacpp.avutil.AVFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webrtc.EncodedImage;
