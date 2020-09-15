@@ -310,6 +310,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 	}
 
 	public void addIceCandidate(IceCandidate iceCandidate) {
+		logger.info("Received ice candidate:{}", iceCandidate);
+		
 		signallingExecutor.execute(() -> {
 			if (descriptionReady) {
 				if (!peerConnection.addIceCandidate(iceCandidate)) 
