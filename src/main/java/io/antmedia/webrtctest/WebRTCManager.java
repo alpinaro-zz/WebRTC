@@ -507,16 +507,27 @@ public class WebRTCManager implements Observer, SdpObserver {
 					return;
 				}
 				connected  = true;
+				//
+				streamManager.start();
+				listener.onCompleted();
+				/* We comment out the below block and make it available both publisher and player above - 
+				 * mekya
 				if(settings.mode == Mode.PLAYER) {
 					streamManager.start();
 					listener.onCompleted();
 				}
+				*/
 			}
-			else if (newState == IceConnectionState.COMPLETED) {
+			else if (newState == IceConnectionState.COMPLETED) 
+			{
+				//we've moved the below block to the connected and I don't know why publisher and player cycle are different
+				//mekya
+				/*
 				if(settings.mode == Mode.PUBLISHER) {
 					streamManager.start();
-					listener.onCompleted();
+		 			listener.onCompleted();
 				}
+				*/
 			}
 			else if (newState == IceConnectionState.DISCONNECTED || newState == IceConnectionState.FAILED
 					|| newState == IceConnectionState.CLOSED) 
