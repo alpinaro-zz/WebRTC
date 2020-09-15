@@ -345,11 +345,17 @@ public class WebRTCManager implements Observer, SdpObserver {
 				streamManager.stop();
 				
 				logger.info("Checking data channel for stream: {}", streamId);
-				if(dataChannel != null ) {
-					logger.info("data channel state: {} for stream id: {}", dataChannel.state(), streamId);
-					dataChannel.close();
-					dataChannel.dispose();
-					dataChannel = null;
+				try {
+					//it may throw exception and it effects the closing scenario
+					if(dataChannel != null ) {
+						logger.info("data channel state: {} for stream id: {}", dataChannel.state(), streamId);
+						dataChannel.close();
+						dataChannel.dispose();
+						dataChannel = null;
+					}
+				}
+				catch(Exception e) {
+					e.printStackTrace();
 				}
 				
 				if (peerConnection != null) {
