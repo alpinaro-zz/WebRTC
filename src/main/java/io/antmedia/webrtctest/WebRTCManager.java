@@ -544,9 +544,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 	public void onIceCandidate(IceCandidate candidate) {
 		
 		signallingExecutor.execute(() -> {
-			logger.info("0 onIceCandidate candidate: {} time: {}" , candidate, System.currentTimeMillis());
 			websocket.sendTakeCandidateMessage(candidate.sdpMLineIndex,	candidate.sdpMid, candidate.sdp, getStreamId());
-			logger.info("1 onIceCandidate candidate: {}" , candidate);
+			logger.info("onIceCandidate candidate: {}" , candidate);
 		});
 		
 	}

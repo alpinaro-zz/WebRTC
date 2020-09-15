@@ -137,6 +137,7 @@ public class WebsocketClientEndpoint {
 				webrtcManager.stop();
 			}
 			else if (cmd.equals(WebSocketConstants.ERROR_COMMAND)) {
+				logger.error("Incoming message:{}" , message);
 			}
 			else if (cmd.equals(WebSocketConstants.NOTIFICATION_COMMAND)) {
 			}
