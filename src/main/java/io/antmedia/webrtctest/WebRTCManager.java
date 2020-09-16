@@ -310,6 +310,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 	}
 
 	public void addIceCandidate(IceCandidate iceCandidate) {
+		logger.info("Received ice candidate:{}", iceCandidate);
+		
 		signallingExecutor.execute(() -> {
 			if (descriptionReady) {
 				if (!peerConnection.addIceCandidate(iceCandidate)) 
@@ -343,11 +345,17 @@ public class WebRTCManager implements Observer, SdpObserver {
 				streamManager.stop();
 				
 				logger.info("Checking data channel for stream: {}", streamId);
-				if(dataChannel != null ) {
-					logger.info("data channel state: {} for stream id: {}", dataChannel.state(), streamId);
-					dataChannel.close();
-					dataChannel.dispose();
-					dataChannel = null;
+				try {
+					//it may throw exception and it effects the closing scenario
+					if(dataChannel != null ) {
+						logger.info("data channel state: {} for stream id: {}", dataChannel.state(), streamId);
+						dataChannel.close();
+						dataChannel.dispose();
+						dataChannel = null;
+					}
+				}
+				catch(Exception e) {
+					e.printStackTrace();
 				}
 				
 				if (peerConnection != null) {
@@ -499,16 +507,27 @@ public class WebRTCManager implements Observer, SdpObserver {
 					return;
 				}
 				connected  = true;
+				//
+				streamManager.start();
+				listener.onCompleted();
+				/* We comment out the below block and make it available both publisher and player above - 
+				 * mekya
 				if(settings.mode == Mode.PLAYER) {
 					streamManager.start();
 					listener.onCompleted();
 				}
+				*/
 			}
-			else if (newState == IceConnectionState.COMPLETED) {
+			else if (newState == IceConnectionState.COMPLETED) 
+			{
+				//we've moved the below block to the connected and I don't know why publisher and player cycle are different
+				//mekya
+				/*
 				if(settings.mode == Mode.PUBLISHER) {
 					streamManager.start();
-					listener.onCompleted();
+		 			listener.onCompleted();
 				}
+				*/
 			}
 			else if (newState == IceConnectionState.DISCONNECTED || newState == IceConnectionState.FAILED
 					|| newState == IceConnectionState.CLOSED) 
@@ -536,9 +555,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 	public void onIceCandidate(IceCandidate candidate) {
 		
 		signallingExecutor.execute(() -> {
-			logger.info("0 onIceCandidate candidate: {} time: {}" , candidate, System.currentTimeMillis());
 			websocket.sendTakeCandidateMessage(candidate.sdpMLineIndex,	candidate.sdpMid, candidate.sdp, getStreamId());
-			logger.info("1 onIceCandidate candidate: {}" , candidate);
+			logger.info("onIceCandidate candidate: {}" , candidate);
 		});
 		
 	}
