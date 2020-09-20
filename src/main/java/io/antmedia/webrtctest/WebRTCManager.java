@@ -55,7 +55,7 @@ import io.antmedia.webrtc.api.IAudioTrackListener;
 public class WebRTCManager implements Observer, SdpObserver {
 	private Logger logger = LoggerFactory.getLogger(WebRTCManager.class);
 	
-	String stunServerUri = "stun:stun.l.google.com:19302";
+	String stunServerUri = "stun:stun1.l.google.com:19302";
 	private PeerConnectionFactory peerConnectionFactory;
 	private PeerConnection peerConnection;
 
