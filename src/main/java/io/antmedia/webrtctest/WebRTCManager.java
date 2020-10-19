@@ -94,6 +94,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 	private AudioSource audioSource;
 
+	private boolean firstPongMessageReceived = false;
+
 	public WebRTCManager(String streamId, Settings settings) 
 	{
 		this.settings = settings;
@@ -108,6 +110,22 @@ public class WebRTCManager implements Observer, SdpObserver {
 			websocket.sendPingMessage();
 			
 		}, 5, 5, TimeUnit.SECONDS);
+	}
+	
+	public void pongMessageReceived() 
+	{
+		//start process after getting first pong message
+		if (!firstPongMessageReceived) 
+		{
+			logger.info("First pong message received and starting process for stream:{}", getStreamId());
+			firstPongMessageReceived = true;
+			if(settings.mode == Mode.PUBLISHER) {
+				websocket.sendPublish(getStreamId());
+			}
+			else {
+				websocket.sendPlay(getStreamId());
+			}
+		}
 	}
 
 	private void initPeerConnection() {
@@ -385,6 +403,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 				e.printStackTrace();
 			}
 		});
+		
+		signallingExecutor.shutdown();
 	}
 
 	public VirtualVideoEncoder getEncoder() {

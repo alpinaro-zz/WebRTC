@@ -69,13 +69,6 @@ public class WebsocketClientEndpoint {
 		logger.info("websocket opened {}", this.hashCode());
 		this.session = session;
 		
-		if(settings.mode == Mode.PUBLISHER) {
-			sendPublish(webrtcManager.getStreamId());
-		}
-		else {
-			sendPlay(webrtcManager.getStreamId());
-		}
-		
 		if (webrtcManager != null) {
 			webrtcManager.webSocketOpened();
 		}
@@ -117,6 +110,11 @@ public class WebsocketClientEndpoint {
 				//sendNoStreamIdSpecifiedError();
 				return;
 			}
+			
+			if (cmd.equals(WebSocketConstants.PONG_COMMAND)) {
+				webrtcManager.pongMessageReceived();
+			}
+			
 			if (cmd.equals(WebSocketConstants.START_COMMAND))  
 			{
 				webrtcManager.createOffer();
