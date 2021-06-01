@@ -6,7 +6,7 @@ if [ $OUT -ne 0 ]; then
     exit $OUT
 fi
 
-SRC=target/webrtctest-0.0.1-SNAPSHOT.jar
+SRC=target/webrtctest*-SNAPSHOT.jar
 
 if [ -d ~/test/webrtctest/ ]
 then

@@ -96,11 +96,12 @@ public class FileReader{
 		timeBaseForMS.num(1);
 		timeBaseForMS.den(1000);
 
-		if(!settings.audioOnly && settings.codec == VideoCodec.H264) {
+		if(!settings.audioOnly && (settings.codec == VideoCodec.H264 || settings.codec == VideoCodec.H265)) {
 			initVideoBSF();
 		}
 
-		if(audioIndex != -1) {
+		if(audioIndex != -1) 
+		{
 			audioTimebase = inputContext.streams(audioIndex).time_base();
 
 			if(inputContext.streams(audioIndex).codec().codec_id() != AV_CODEC_ID_OPUS) {
@@ -112,7 +113,8 @@ public class FileReader{
 		return true;
 	}
 
-	private void initVideoBSF() {
+	private void initVideoBSF() 
+	{
 		AVBitStreamFilter h264bsfc = av_bsf_get_by_name("h264_mp4toannexb");
 		bsfContext = new AVBSFContext(null);
 
@@ -148,8 +150,10 @@ public class FileReader{
 			int ret = av_read_frame(inputContext, pkt);
 			read = (ret >= 0);
 
-			if (pkt.stream_index() == videoIndex) {
-				if(settings.codec == VideoCodec.H264) {
+			if (pkt.stream_index() == videoIndex) 
+			{
+				if(settings.codec == VideoCodec.H264 /*|| settings.codec == VideoCodec.H265*/) 
+				{
 					av_bsf_send_packet(bsfContext, pkt);
 
 					while (av_bsf_receive_packet(bsfContext, pkt) == 0) 
@@ -160,7 +164,8 @@ public class FileReader{
 						videoFrames.add(new Frame(data, timeStamp, (pkt.flags() & AV_PKT_FLAG_KEY)==1));
 					}
 				}
-				else {
+				else 
+				{
 					ByteBuffer data = ByteBuffer.allocateDirect(pkt.size());
 					if(pkt.size() > 0) {
 						data.put(pkt.data().position(0).limit(pkt.size()).asByteBuffer());
@@ -169,7 +174,8 @@ public class FileReader{
 					}
 				}
 			}
-			else if (pkt.stream_index() == audioIndex) {
+			else if (pkt.stream_index() == audioIndex) 
+			{
 				ByteBuffer data = ByteBuffer.allocateDirect(pkt.size());
 				if(pkt.size() > 0) {
 					data.put(pkt.data().position(0).limit(pkt.size()).asByteBuffer());
