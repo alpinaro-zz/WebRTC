@@ -14,7 +14,8 @@ import org.webrtc.JavaI420Buffer;
 import org.webrtc.NaluIndex;
 import org.webrtc.VideoFrame;
 
-public class WebRTCPublisher extends StreamManager{
+public class WebRTCPublisher extends StreamManager
+{
 	protected int fps = 24;
 	private Logger logger = LoggerFactory.getLogger(WebRTCPublisher.class);
 
@@ -158,6 +159,9 @@ private List<NaluIndex> findNaluIndices(ByteBuffer buffer) {
 		size = naluSequence.size();
 		if (size >= 1) {
 			naluSequence.get(size-1).payloadSize = buffer.limit() - naluSequence.get(size-1).payloadStartOffset;
+		}
+		else if (size == 0) {
+			logger.warn("No NAL unit found");
 		}
 		
 		

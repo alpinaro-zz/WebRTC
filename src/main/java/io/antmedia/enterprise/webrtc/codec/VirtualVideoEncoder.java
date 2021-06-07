@@ -91,7 +91,6 @@ public class VirtualVideoEncoder implements VideoEncoder {
 				updateBitrate();
 			}	
 			encodedImage.setCaptureTimeNs(timestampNs);
-			
 			encodeCallback.onEncodedFrame(encodedImage, codecInfo, naluIndices);
 		});
 		return VideoCodecStatus.OK;
