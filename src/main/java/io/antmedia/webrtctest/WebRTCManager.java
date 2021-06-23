@@ -81,9 +81,9 @@ public class WebRTCManager implements Observer, SdpObserver {
 	private static final String AUDIO_HIGH_PASS_FILTER_CONSTRAINT = "googHighpassFilter";
 	private static final String AUDIO_NOISE_SUPPRESSION_CONSTRAINT = "googNoiseSuppression";
 	private static final String FALSE = "false";
-	public static final String VIDEO_TRACK_ID = "ARDAMSv0";
+	public static final String VIDEO_TRACK_ID = "ARDAMSv";
 
-	public static final String AUDIO_TRACK_ID = "ARDAMSa0";
+	public static final String AUDIO_TRACK_ID = "ARDAMSa";
 
 	private ScheduledExecutorService signallingExecutor = Executors.newSingleThreadScheduledExecutor();
 	private Settings settings;
@@ -168,12 +168,12 @@ public class WebRTCManager implements Observer, SdpObserver {
 				 *  capturerObserver.onFrameCaptured(frame);
 				 */
 
-				VideoTrack videoTrack = peerConnectionFactory.createVideoTrack(VIDEO_TRACK_ID, videoSource);
+				VideoTrack videoTrack = peerConnectionFactory.createVideoTrack(VIDEO_TRACK_ID+streamId, videoSource);
 
 				peerConnection.addTrack(videoTrack, mediaStreamLabels);
 
 				audioSource = peerConnectionFactory.createAudioSource(audioConstraints);
-				AudioTrack localAudioTrack = peerConnectionFactory.createAudioTrack(AUDIO_TRACK_ID, audioSource);
+				AudioTrack localAudioTrack = peerConnectionFactory.createAudioTrack(AUDIO_TRACK_ID+streamId, audioSource);
 
 				peerConnection.addTrack(localAudioTrack, mediaStreamLabels);
 
