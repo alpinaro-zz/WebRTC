@@ -101,7 +101,7 @@
         </dependency>
         <dependency>
             <groupId>io.antmedia</groupId>
-            <artifactId>ant-media-server-common</artifactId>
+            <artifactId>ant-media-server</artifactId>
             <version>${project.parent.version}</version>
             <scope>provided</scope>
         </dependency>
