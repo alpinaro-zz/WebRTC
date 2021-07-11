@@ -25,6 +25,9 @@ public class Settings {
 	public String kafkaBrokers = null;
 	public VideoCodec codec = VideoCodec.H264;
 	public boolean dataChannel;
+	public String roomId = "";
+	public String roomMode = "legacy";
+
 	
 	void printUsage() {
 	    System.out.println("WebRTC Test Tool for Ant Media Server v0.2\n");
@@ -35,7 +38,7 @@ public class Settings {
 	    System.out.println("l    \t Log Level    \t 3         \t 0:VERBOSE,1:INFO,2:WARNING,3:ERROR,4:NONE");
 	    System.out.println("i    \t Stream Id    \t myStream  \t id for stream               ");
 	    System.out.println("f    \t File Name    \t test.mp4  \t Source file* for publisher output file for player");
-	    System.out.println("m    \t Mode         \t player    \t publisher or player         ");
+	    System.out.println("m    \t Mode         \t player    \t publisher | player | participant");
 	    System.out.println("u    \t Show GUI     \t true      \t true or false               ");
 	    System.out.println("p    \t Port         \t 5080      \t websocket port number       ");
 	    System.out.println("v    \t Verbose      \t false     \t true or false               ");
@@ -44,7 +47,8 @@ public class Settings {
 	    System.out.println("r    \t Loop Publish \t false     \t true or false");
 	    System.out.println("c    \t Codec        \t h264      \t h264 or VP8");
 	    System.out.println("d    \t DataChannel  \t false     \t true or false");
-
+	    System.out.println("o    \t RoomId       \t room1     \t id for room                 ");
+	    System.out.println("e    \t RoomMode     \t legacy    \t legacy | mcu | multitrack   ");
 
 	}
 
@@ -75,6 +79,9 @@ public class Settings {
 	        }
 	        else if(strMode.contentEquals("player")){
 	            mode = Mode.PLAYER;
+	        }
+	        else if(strMode.contentEquals("participant")){
+	            mode = Mode.PARTICIPANT;
 	        }
 	        else {
 	            System.out.println("undefined mode:"+strMode);
@@ -124,6 +131,12 @@ public class Settings {
 	        String strDC = value;
 	        dataChannel = Boolean.parseBoolean(strDC);
 	    }
+	    else if(flag.charAt(1) == 'o') {
+	        roomId = value;
+	    }
+	    else if(flag.charAt(1) == 'e') {
+	        roomMode = value;
+	    }
 	    else {
 	        return false;
 	    }
@@ -157,6 +170,10 @@ public class Settings {
 	    System.out.println("- loop:" + loop);
 	    System.out.println("- codec:" + codec);
 	    System.out.println("- dataChannel:" + dataChannel);
+	    if(mode.equals(Mode.PARTICIPANT)) {
+	    	System.out.println("- room:" + roomId);
+	    	System.out.println("- room mode:" + roomMode);
+	    }
 	}
 
 }

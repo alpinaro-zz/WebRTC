@@ -18,7 +18,7 @@ import io.antmedia.webrtctest.WebRTCPublisher;
 public class Starter implements IWebRTCEventListerner
 {
 
-	ArrayList<WebRTCManager> managers = new ArrayList<>();
+	private ArrayList<WebRTCManager> managers = new ArrayList<>();
 	private FileReader reader;
 	
 	StatManager statManager;
@@ -32,7 +32,7 @@ public class Starter implements IWebRTCEventListerner
 		System.out.println("~~~~~~~~ Start ("+hashCode()+") ~~~~~~~~");
 		settings.parse(args);
 		statManager = new StatManager(settings.kafkaBrokers);
-		if(settings.mode == Mode.PUBLISHER) {
+		if(settings.mode == Mode.PUBLISHER || settings.mode == Mode.PARTICIPANT) {
 			reader = new FileReader(settings);
 			if(reader.init()) {
 				reader.start();
@@ -47,7 +47,7 @@ public class Starter implements IWebRTCEventListerner
 			WebRTCManager webRTCManager = new WebRTCManager(settings.streamId+suffix, settings);
 
 			StreamManager streamManager = null;
-			if(settings.mode == Mode.PUBLISHER) {
+			if(settings.mode == Mode.PUBLISHER || settings.mode == Mode.PARTICIPANT) {
 				streamManager = new WebRTCPublisher(reader, settings.loop);
 			}
 			else if(settings.mode == Mode.PLAYER){
@@ -64,7 +64,7 @@ public class Starter implements IWebRTCEventListerner
 
 			webRTCManager.setListener(this);
 
-			managers.add(webRTCManager);
+			getManagers().add(webRTCManager);
 		}
 		
 		
@@ -73,7 +73,7 @@ public class Starter implements IWebRTCEventListerner
 	}
 
 	public void start() {
-		managers.get(startingIndex).start();
+		getManagers().get(startingIndex).start();
 		startingIndex++;		
 	}
 
@@ -88,15 +88,15 @@ public class Starter implements IWebRTCEventListerner
 
 	public void stop() {
 		statManager.stop();
-		for (WebRTCManager webRTCManager : managers) {
+		for (WebRTCManager webRTCManager : getManagers()) {
 			webRTCManager.stop();
 		}
-		managers.clear();
+		getManagers().clear();
 		System.out.println("~~~~~~~~ Stop ("+hashCode()+")~~~~~~~~");
 	}
 	
 	public boolean isStopped() {
-		for (WebRTCManager webRTCManager : managers) {
+		for (WebRTCManager webRTCManager : getManagers()) {
 			if (webRTCManager.isStopped()) {
 				return true;
 			}
@@ -113,14 +113,14 @@ public class Starter implements IWebRTCEventListerner
 	}
 	
 	public void sendDataChannelMessage(String message) {
-		managers.get(0).sendDataChannelMessage(message);
+		getManagers().get(0).sendDataChannelMessage(message);
 	}
 
 	@Override
 	public void onCompleted() {
 		System.out.println("on completed");
 		
-		statManager.addStreamManager(managers.get(startingIndex-1).getStreamManager());
+		statManager.addStreamManager(getManagers().get(startingIndex-1).getStreamManager());
 
 		if(startingIndex < settings.load) {
 			start();
@@ -129,6 +129,14 @@ public class Starter implements IWebRTCEventListerner
 	
 	@Override
 	public void onDataChannelMessage(String string) {
+	}
+
+	public ArrayList<WebRTCManager> getManagers() {
+		return managers;
+	}
+
+	public void setManagers(ArrayList<WebRTCManager> managers) {
+		this.managers = managers;
 	}
 	
 
