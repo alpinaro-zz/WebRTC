@@ -37,6 +37,10 @@
 			<source>${project.basedir}/src/test/resources/test.webm</source>
 			<outputDirectory></outputDirectory>
 		</file>
+		<file>
+			<source>${project.basedir}/src/test/resources/test_h265_opus.ts</source>
+			<outputDirectory></outputDirectory>
+		</file>
 	</files>
 	<fileSets>
 		<fileSet>
