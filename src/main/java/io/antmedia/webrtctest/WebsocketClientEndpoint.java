@@ -222,6 +222,9 @@ public class WebsocketClientEndpoint {
 		jsonResponse.put(WebSocketConstants.STREAM_ID, streamId);
 		jsonResponse.put(WebSocketConstants.VIDEO, !settings.audioOnly);
 		jsonResponse.put(WebSocketConstants.AUDIO, true);
+		if(settings.mainTrack != null) {
+			jsonResponse.put(WebSocketConstants.MAIN_TRACK, settings.mainTrack);
+		}
 		sendMessage(jsonResponse.toJSONString());	
 	}
 

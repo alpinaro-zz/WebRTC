@@ -27,6 +27,7 @@ public class Settings {
 	public boolean dataChannel;
 	public String roomId = "";
 	public String roomMode = "legacy";
+	public String mainTrack = null;
 
 	
 	void printUsage() {
@@ -49,6 +50,7 @@ public class Settings {
 	    System.out.println("d    \t DataChannel  \t false     \t true or false");
 	    System.out.println("o    \t RoomId       \t room1     \t id for room                 ");
 	    System.out.println("e    \t RoomMode     \t legacy    \t legacy | mcu | multitrack   ");
+	    System.out.println("t    \t MainTrack    \t Null      \t id for maintrack            ");
 
 	}
 
@@ -137,6 +139,9 @@ public class Settings {
 	    else if(flag.charAt(1) == 'e') {
 	        roomMode = value;
 	    }
+	    else if(flag.charAt(1) == 't') {
+	        mainTrack = value;
+	    }
 	    else {
 	        return false;
 	    }
@@ -169,11 +174,12 @@ public class Settings {
 	    System.out.println("- load:" + load);
 	    System.out.println("- loop:" + loop);
 	    System.out.println("- codec:" + codec);
-	    System.out.println("- dataChannel:" + dataChannel);
 	    if(mode.equals(Mode.PARTICIPANT)) {
 	    	System.out.println("- room:" + roomId);
 	    	System.out.println("- room mode:" + roomMode);
 	    }
+	    System.out.println("- main track:" + mainTrack);
+
 	}
 
 }
