@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +29,7 @@ import org.webrtc.PeerConnection.IceConnectionState;
 import org.webrtc.PeerConnection.IceGatheringState;
 import org.webrtc.PeerConnection.IceServer;
 import org.webrtc.PeerConnection.Observer;
+import org.webrtc.PeerConnection.SdpSemantics;
 import org.webrtc.PeerConnection.SignalingState;
 import org.webrtc.PeerConnectionFactory.Options;
 import org.webrtc.PeerConnectionFactory;
@@ -50,6 +52,7 @@ import io.antmedia.enterprise.webrtc.codec.VirtualVideoEncoderFactory;
 import io.antmedia.webrtc.VideoCodec;
 import io.antmedia.webrtc.api.IAudioRecordListener;
 import io.antmedia.webrtc.api.IAudioTrackListener;
+import io.antmedia.websocket.WebSocketConstants;
 
 
 public class WebRTCManager implements Observer, SdpObserver {
@@ -81,9 +84,9 @@ public class WebRTCManager implements Observer, SdpObserver {
 	private static final String AUDIO_HIGH_PASS_FILTER_CONSTRAINT = "googHighpassFilter";
 	private static final String AUDIO_NOISE_SUPPRESSION_CONSTRAINT = "googNoiseSuppression";
 	private static final String FALSE = "false";
-	public static final String VIDEO_TRACK_ID = "ARDAMSv0";
+	public static final String VIDEO_TRACK_ID = "ARDAMSv";
 
-	public static final String AUDIO_TRACK_ID = "ARDAMSa0";
+	public static final String AUDIO_TRACK_ID = "ARDAMSa";
 
 	private ScheduledExecutorService signallingExecutor = Executors.newSingleThreadScheduledExecutor();
 	private Settings settings;
@@ -122,8 +125,11 @@ public class WebRTCManager implements Observer, SdpObserver {
 			if(settings.mode == Mode.PUBLISHER) {
 				websocket.sendPublish(getStreamId());
 			}
-			else {
+			else if(settings.mode == Mode.PLAYER){
 				websocket.sendPlay(getStreamId());
+			}
+			else if(settings.mode == Mode.PARTICIPANT){
+				websocket.sendJoinTheRoom(getStreamId(), settings.roomId, settings.roomMode);
 			}
 		}
 	}
@@ -140,6 +146,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 			rtcConfig.enableDtlsSrtp = true;
 			rtcConfig.disableIpv6 = true;
+			rtcConfig.sdpSemantics = SdpSemantics.PLAN_B;
+
 			//rtcConfig.tcpCandidatePolicy = TcpCandidatePolicy.ENABLED; 
 
 			logger.info("Creating peerconnection hascode:{} time:{}" , WebRTCManager.this.hashCode(), System.currentTimeMillis());
@@ -168,12 +176,12 @@ public class WebRTCManager implements Observer, SdpObserver {
 				 *  capturerObserver.onFrameCaptured(frame);
 				 */
 
-				VideoTrack videoTrack = peerConnectionFactory.createVideoTrack(VIDEO_TRACK_ID, videoSource);
+				VideoTrack videoTrack = peerConnectionFactory.createVideoTrack(VIDEO_TRACK_ID+streamId, videoSource);
 
 				peerConnection.addTrack(videoTrack, mediaStreamLabels);
 
 				audioSource = peerConnectionFactory.createAudioSource(audioConstraints);
-				AudioTrack localAudioTrack = peerConnectionFactory.createAudioTrack(AUDIO_TRACK_ID, audioSource);
+				AudioTrack localAudioTrack = peerConnectionFactory.createAudioTrack(AUDIO_TRACK_ID+streamId, audioSource);
 
 				peerConnection.addTrack(localAudioTrack, mediaStreamLabels);
 
@@ -247,7 +255,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 		options.disableNetworkMonitor = true;
 		options.networkIgnoreMask = Options.ADAPTER_TYPE_LOOPBACK;
 
-		if(settings.mode == Mode.PUBLISHER) {
+		if(settings.mode == Mode.PUBLISHER || settings.mode == Mode.PARTICIPANT) {
 			adm = (JavaAudioDeviceModule)JavaAudioDeviceModule.builder(null)
 					.setUseHardwareAcousticEchoCanceler(false)
 					.setUseHardwareNoiseSuppressor(false)
@@ -705,5 +713,30 @@ public class WebRTCManager implements Observer, SdpObserver {
 	
 	public boolean isStopped() {
 		return isStopped;
+	}
+
+	public void joinedTheRoom() {
+		websocket.sendPublish(getStreamId());
+	}
+	
+	public List<String> getTrackList() {
+		ArrayList<String> tracks = new ArrayList<String>();
+		CountDownLatch latch = new CountDownLatch(1);
+		signallingExecutor.execute(() -> {
+			if(peerConnection != null) {
+				for(RtpReceiver receiver : peerConnection.getReceivers()) {
+					System.out.println("tacks"+receiver);
+					tracks.add(receiver.track().id());
+				}
+				latch.countDown();
+			}
+		});
+		
+		try {
+			latch.await();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return tracks;
 	}
 }

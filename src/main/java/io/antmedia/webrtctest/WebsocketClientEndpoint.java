@@ -138,6 +138,11 @@ public class WebsocketClientEndpoint {
 				logger.error("Incoming message:{}" , message);
 			}
 			else if (cmd.equals(WebSocketConstants.NOTIFICATION_COMMAND)) {
+				
+				String definition = (String) jsonObject.get(WebSocketConstants.DEFINITION);
+				if (definition.equals(WebSocketConstants.JOINED_THE_ROOM)) {
+					webrtcManager.joinedTheRoom();
+				}
 			}
 			else if (cmd.equals(WebSocketConstants.STREAM_INFORMATION_NOTIFICATION)) {
 			}
@@ -217,6 +222,9 @@ public class WebsocketClientEndpoint {
 		jsonResponse.put(WebSocketConstants.STREAM_ID, streamId);
 		jsonResponse.put(WebSocketConstants.VIDEO, !settings.audioOnly);
 		jsonResponse.put(WebSocketConstants.AUDIO, true);
+		if(settings.mainTrack != null) {
+			jsonResponse.put(WebSocketConstants.MAIN_TRACK, settings.mainTrack);
+		}
 		sendMessage(jsonResponse.toJSONString());	
 	}
 
@@ -298,6 +306,15 @@ public class WebsocketClientEndpoint {
 	public void sendPingMessage() {
 		JSONObject jsonResponse = new JSONObject();
 		jsonResponse.put(WebSocketConstants.COMMAND, WebSocketConstants.PING_COMMAND);
+		sendMessage(jsonResponse.toJSONString());	
+	}
+
+	public void sendJoinTheRoom(String streamId, String roomId, String multiTrack) {
+		JSONObject jsonResponse = new JSONObject();
+		jsonResponse.put(WebSocketConstants.COMMAND, WebSocketConstants.JOIN_ROOM_COMMAND);
+		jsonResponse.put(WebSocketConstants.STREAM_ID, streamId);
+		jsonResponse.put(WebSocketConstants.ROOM, roomId);
+		jsonResponse.put(WebSocketConstants.MODE, multiTrack);
 		sendMessage(jsonResponse.toJSONString());	
 	}
 

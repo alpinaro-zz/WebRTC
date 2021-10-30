@@ -92,7 +92,7 @@ public class WebRTCPublisher extends StreamManager
 			if(lastSentPacket < reader.audioFrames.size()) {
 				FileReader.Frame frame = reader.audioFrames.get(lastSentPacket++);
 				frame.data.rewind();
-				manager.getAudioRecord().notifyEncodedData(frame.data); //20ms of audio encoded data
+				manager.getAudioRecord().notifyEncodedData(WebRTCManager.AUDIO_TRACK_ID+manager.getStreamId(), frame.data); //20ms of audio encoded data
 			}
 			else if(loop) {
 				lastSentPacket = 0;
