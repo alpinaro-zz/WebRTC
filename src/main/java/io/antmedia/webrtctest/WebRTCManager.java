@@ -436,6 +436,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 					@Override
 					public void onSetSuccess() {
+						
 						for (Iterator<IceCandidate> iterator = iceCandidateQueue.iterator(); iterator.hasNext();) {
 							IceCandidate iceCandidate = iterator.next();
 
@@ -451,7 +452,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 					@Override
 					public void onSetFailure(String error) {
-						logger.error("Cannot set local description for {} error:", getStreamId(), error);				
+						logger.error("Cannot set local description for {} error:{}", getStreamId(), error);				
 					}
 
 					@Override
@@ -475,7 +476,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 					}
 					@Override
 					public void onSetFailure(String error) {
-						logger.error("Cannot set local description for {} error: ", getStreamId(), error);	
+						logger.error("Cannot set local description for {} error: {} ", getStreamId(), error);	
 					}
 					@Override
 					public void onCreateSuccess(SessionDescription sdp) {}
