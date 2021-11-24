@@ -1,6 +1,6 @@
 package io.antmedia.webrtctest;
 
-public abstract class StreamManager {
+public abstract class WebRTCClientEmulator {
 	protected WebRTCManager manager;
 	long count = 0;
 	long totalDt = 0;

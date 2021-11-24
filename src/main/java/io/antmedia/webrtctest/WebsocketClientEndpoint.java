@@ -225,7 +225,9 @@ public class WebsocketClientEndpoint {
 		if(settings.mainTrack != null) {
 			jsonResponse.put(WebSocketConstants.MAIN_TRACK, settings.mainTrack);
 		}
-		sendMessage(jsonResponse.toJSONString());	
+		String jsonString = jsonResponse.toJSONString();
+		logger.info("sending publish message -> {}", jsonString);
+		sendMessage(jsonString);	
 	}
 
 	@SuppressWarnings("unchecked")

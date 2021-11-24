@@ -67,7 +67,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 	private WebsocketClientEndpoint websocket;
 	private MediaConstraints audioConstraints;
 	private MediaConstraints sdpMediaConstraints;
-	private StreamManager streamManager;
+	private WebRTCClientEmulator webRTCClientEmulator;
 
 	private VirtualVideoEncoderFactory encoderFactory;
 	private CapturerObserver capturerObserver;
@@ -155,8 +155,10 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 
 
-			if (streamManager instanceof WebRTCPublisher) {
+			if (webRTCClientEmulator instanceof WebRTCPublisher) {
 				//why ARDAMS is used
+				
+			
 				List<String> mediaStreamLabels = Collections.singletonList("ARDAMS");
 
 				//instantiate video source
@@ -368,7 +370,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 				websocket.close();
 				logger.info("WebRTCManager stopping. Hash: {}", WebRTCManager.this.hashCode());
 				
-				streamManager.stop();
+				webRTCClientEmulator.stop();
 				
 				logger.info("Checking data channel for stream: {}", streamId);
 				try {
@@ -434,6 +436,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 					@Override
 					public void onSetSuccess() {
+						
 						for (Iterator<IceCandidate> iterator = iceCandidateQueue.iterator(); iterator.hasNext();) {
 							IceCandidate iceCandidate = iterator.next();
 
@@ -449,7 +452,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 					@Override
 					public void onSetFailure(String error) {
-						logger.error("Cannot set local description for {} error:", getStreamId(), error);				
+						logger.error("Cannot set local description for {} error:{}", getStreamId(), error);				
 					}
 
 					@Override
@@ -473,7 +476,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 					}
 					@Override
 					public void onSetFailure(String error) {
-						logger.error("Cannot set local description for {} error: ", getStreamId(), error);	
+						logger.error("Cannot set local description for {} error: {} ", getStreamId(), error);	
 					}
 					@Override
 					public void onCreateSuccess(SessionDescription sdp) {}
@@ -489,11 +492,11 @@ public class WebRTCManager implements Observer, SdpObserver {
 	public void onSetSuccess() {
 		signallingExecutor.execute(() -> {
 			logger.info("onSetSuccess for {}", getStreamId());
-			if(streamManager instanceof WebRTCPlayer)  //  sdp.type == Type.OFFER) 
+			if(webRTCClientEmulator instanceof WebRTCPlayer)  //  sdp.type == Type.OFFER) 
 			{
 				peerConnection.createAnswer(this, sdpMediaConstraints);
 			}
-			else if (streamManager instanceof WebRTCPublisher) {
+			else if (webRTCClientEmulator instanceof WebRTCPublisher) {
 				for (Iterator<IceCandidate> iterator = iceCandidateQueue.iterator(); iterator.hasNext();) {
 					IceCandidate iceCandidate = iterator.next();
 
@@ -537,7 +540,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 				}
 				connected  = true;
 				//
-				streamManager.start();
+				webRTCClientEmulator.start();
 				listener.onCompleted();
 				/* We comment out the below block and make it available both publisher and player above - 
 				 * mekya
@@ -561,7 +564,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 			else if (newState == IceConnectionState.DISCONNECTED || newState == IceConnectionState.FAILED
 					|| newState == IceConnectionState.CLOSED) 
 			{	
-				streamManager.stop();
+				webRTCClientEmulator.stop();
 				stop();
 				listener.onCompleted();
 			}
@@ -666,8 +669,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 		logger.info("onAddTrack for streamId {}", getStreamId());
 	}
 
-	public void setStreamManager(StreamManager streamManager) {
-		this.streamManager = streamManager;		
+	public void setStreamManager(WebRTCClientEmulator streamManager) {
+		this.webRTCClientEmulator = streamManager;		
 	}
 
 	public WebRtcAudioRecord getAudioRecord() {
@@ -700,8 +703,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 		this.listener = listener;
 	}
 
-	public StreamManager getStreamManager() {
-		return streamManager;
+	public WebRTCClientEmulator getStreamManager() {
+		return webRTCClientEmulator;
 	}
 
 	public void sendDataChannelMessage(String message) {
