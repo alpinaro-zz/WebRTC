@@ -32,7 +32,7 @@ public class StatManager {
 	private static final String SYSTEM_CPU_LOAD = "system_cpu_load";
 	private static final String INSTANCE_ID = "instance_id";
 	
-	private ArrayList<StreamManager> streamManagers = new ArrayList<>();
+	private ArrayList<WebRTCClientEmulator> streamManagers = new ArrayList<>();
 	ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(3);
 	private Logger logger = LoggerFactory.getLogger(StatManager.class);
 
@@ -90,7 +90,7 @@ public class StatManager {
 		int activeConnections = 0;
 		Integer systemCpuLoad = getSystemCpuLoad();
 		int numberOfClientsForFPSCalculation = 0;
-		for (StreamManager streamManager : streamManagers) 
+		for (WebRTCClientEmulator streamManager : streamManagers) 
 		{
 			if (!streamManager.isStarted() ||   //if stream is not started, assume that it is running
 					(streamManager.isRunning() && !streamsRunningLocal)) {
@@ -150,7 +150,7 @@ public class StatManager {
 	}
 
 
-	public void addStreamManager(StreamManager streamManager) {
+	public void addStreamManager(WebRTCClientEmulator streamManager) {
 		if (!streamManagers.contains(streamManager)) {
 			streamManagers.add(streamManager);
 		}

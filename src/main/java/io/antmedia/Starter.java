@@ -10,7 +10,7 @@ import io.antmedia.webrtctest.FileReader;
 import io.antmedia.webrtctest.Mode;
 import io.antmedia.webrtctest.Settings;
 import io.antmedia.webrtctest.StatManager;
-import io.antmedia.webrtctest.StreamManager;
+import io.antmedia.webrtctest.WebRTCClientEmulator;
 import io.antmedia.webrtctest.WebRTCManager;
 import io.antmedia.webrtctest.WebRTCPlayer;
 import io.antmedia.webrtctest.WebRTCPublisher;
@@ -42,24 +42,29 @@ public class Starter implements IWebRTCEventListerner
 			}
 		}
 
-		for (int i = 0; i < settings.load; i++) {
+		for (int i = 0; i < settings.load; i++) 
+		{
 			String suffix = settings.mode == Mode.PUBLISHER && settings.load > 1 ? "-"+i : ""; 
+			
 			WebRTCManager webRTCManager = new WebRTCManager(settings.streamId+suffix, settings);
 
-			StreamManager streamManager = null;
-			if(settings.mode == Mode.PUBLISHER || settings.mode == Mode.PARTICIPANT) {
-				streamManager = new WebRTCPublisher(reader, settings.loop);
+			WebRTCClientEmulator webRTCClient = null;
+			if(settings.mode == Mode.PUBLISHER || settings.mode == Mode.PARTICIPANT) 
+			{
+				webRTCClient = new WebRTCPublisher(reader, settings.loop);
 			}
-			else if(settings.mode == Mode.PLAYER){
-				streamManager = new WebRTCPlayer(settings);
+			else if(settings.mode == Mode.PLAYER)
+			{
+				webRTCClient = new WebRTCPlayer(settings);
 			}
 
-			if (streamManager == null) {
+			if (webRTCClient == null) 
+			{
 				throw new IllegalArgumentException("Illegal mode not publisher or player");
 			}
 			
-			streamManager.setManager(webRTCManager);
-			webRTCManager.setStreamManager(streamManager);
+			webRTCClient.setManager(webRTCManager);
+			webRTCManager.setStreamManager(webRTCClient);
 			
 
 			webRTCManager.setListener(this);

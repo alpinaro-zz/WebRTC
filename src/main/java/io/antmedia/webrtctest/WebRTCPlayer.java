@@ -16,7 +16,7 @@ import io.antmedia.webrtctest.filewriter.H264Writer;
 import io.antmedia.webrtctest.filewriter.IFileWriter;
 import io.antmedia.webrtctest.filewriter.VP8Writer;
 
-public class WebRTCPlayer extends StreamManager implements IPacketListener{
+public class WebRTCPlayer extends WebRTCClientEmulator implements IPacketListener{
 
 	protected boolean running;
 	ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);

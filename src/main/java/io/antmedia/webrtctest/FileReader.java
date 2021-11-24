@@ -211,4 +211,12 @@ public class FileReader{
 			this.isKeyFrame = isKeyFrame;
 		}
 	}
+	
+	public boolean hasVideo() {
+		return videoIndex != -1;
+	}
+	
+	public boolean hasAudio() {
+		return audioIndex != -1;
+	}
 }

@@ -14,7 +14,7 @@ import org.webrtc.JavaI420Buffer;
 import org.webrtc.NaluIndex;
 import org.webrtc.VideoFrame;
 
-public class WebRTCPublisher extends StreamManager
+public class WebRTCPublisher extends WebRTCClientEmulator
 {
 	protected int fps = 24;
 	private Logger logger = LoggerFactory.getLogger(WebRTCPublisher.class);
@@ -67,8 +67,8 @@ public class WebRTCPublisher extends StreamManager
 		public void run() {
 			update();
 			
-			if(lastSentPacket < reader.videoFrames.size()) {
-				FileReader.Frame frame = reader.videoFrames.get(lastSentPacket++);
+			if(lastSentPacket < getReader().videoFrames.size()) {
+				FileReader.Frame frame = getReader().videoFrames.get(lastSentPacket++);
 				frame.data.rewind();
 				List<NaluIndex> naluIndices = findNaluIndices(frame.data);
 				manager.getEncoder().setEncodedFrameBuffer(frame.data, frame.isKeyFrame, frame.timeStamp*1000*1000, 0, naluIndices, "0");
@@ -89,8 +89,8 @@ public class WebRTCPublisher extends StreamManager
 		int lastSentPacket = 0;
 		@Override
 		public void run() {
-			if(lastSentPacket < reader.audioFrames.size()) {
-				FileReader.Frame frame = reader.audioFrames.get(lastSentPacket++);
+			if(lastSentPacket < getReader().audioFrames.size()) {
+				FileReader.Frame frame = getReader().audioFrames.get(lastSentPacket++);
 				frame.data.rewind();
 				manager.getAudioRecord().notifyEncodedData(WebRTCManager.AUDIO_TRACK_ID+manager.getStreamId(), frame.data); //20ms of audio encoded data
 			}
@@ -167,6 +167,11 @@ private List<NaluIndex> findNaluIndices(ByteBuffer buffer) {
 		
 		return naluSequence;
 	}
+
+public FileReader getReader() {
+	return reader;
+}
+
 	
 	
 }
