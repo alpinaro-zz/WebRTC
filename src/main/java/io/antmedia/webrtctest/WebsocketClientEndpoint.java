@@ -107,7 +107,6 @@ public class WebsocketClientEndpoint {
 					!cmd.equals(WebSocketConstants.PONG_COMMAND)) 
 			{
 				logger.error("Incoming message:{}" , message);
-				//sendNoStreamIdSpecifiedError();
 				return;
 			}
 			
@@ -135,12 +134,21 @@ public class WebsocketClientEndpoint {
 				webrtcManager.stop();
 			}
 			else if (cmd.equals(WebSocketConstants.ERROR_COMMAND)) {
-				logger.error("Incoming message:{}" , message);
+				logger.error("Incoming error message:{}" , message);
+				String definition = (String) jsonObject.get(WebSocketConstants.DEFINITION);
+				
+				if (WebSocketConstants.HIGH_RESOURCE_USAGE.equals(definition)) 
+				{
+					//Set high resource usage to true to let the process try again
+					webrtcManager.setHighResourceUsageReceived(true);
+					
+				}
 			}
 			else if (cmd.equals(WebSocketConstants.NOTIFICATION_COMMAND)) {
 				
 				String definition = (String) jsonObject.get(WebSocketConstants.DEFINITION);
-				if (definition.equals(WebSocketConstants.JOINED_THE_ROOM)) {
+				if (definition.equals(WebSocketConstants.JOINED_THE_ROOM)) 
+				{
 					webrtcManager.joinedTheRoom();
 				}
 			}
