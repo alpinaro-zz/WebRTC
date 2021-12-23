@@ -137,10 +137,10 @@ public class WebsocketClientEndpoint {
 				logger.error("Incoming error message:{}" , message);
 				String definition = (String) jsonObject.get(WebSocketConstants.DEFINITION);
 				
-				if (WebSocketConstants.HIGH_RESOURCE_USAGE.equals(definition)) 
+				if (WebSocketConstants.HIGH_RESOURCE_USAGE.equals(definition) || WebSocketConstants.NOT_INITIALIZED_YET.equals(definition)) 
 				{
 					//Set high resource usage to true to let the process try again
-					webrtcManager.setHighResourceUsageReceived(true);
+					webrtcManager.setTryagain(true);
 					
 				}
 			}

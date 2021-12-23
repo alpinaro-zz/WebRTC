@@ -96,7 +96,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 	private boolean firstPongMessageReceived = false;
 
-	private boolean highResourceUsageReceived = false;
+	private boolean tryAgain = false;
 
 	public WebRTCManager(String streamId, Settings settings) 
 	{
@@ -117,7 +117,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 	public void pongMessageReceived() 
 	{
 		//start process after getting first pong message
-		if (!firstPongMessageReceived || highResourceUsageReceived ) 
+		if (!firstPongMessageReceived || tryAgain ) 
 		{
 			logger.info("Pong message received and starting process for stream:{}", getStreamId());
 			firstPongMessageReceived = true;
@@ -131,11 +131,11 @@ public class WebRTCManager implements Observer, SdpObserver {
 				websocket.sendJoinTheRoom(getStreamId(), settings.roomId, settings.roomMode);
 			}
 		}
-		highResourceUsageReceived = false;
+		tryAgain = false;
 	}
 	
-	public void setHighResourceUsageReceived(boolean highResourceUsageReceived) {
-		this.highResourceUsageReceived = highResourceUsageReceived;
+	public void setTryagain(boolean tryAgain) {
+		this.tryAgain = tryAgain;
 	}
 
 	private void initPeerConnection() {
