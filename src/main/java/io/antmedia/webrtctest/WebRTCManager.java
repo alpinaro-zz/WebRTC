@@ -1,7 +1,5 @@
 package io.antmedia.webrtctest;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,6 +18,8 @@ import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
 import org.webrtc.CapturerObserver;
 import org.webrtc.DataChannel;
+import org.webrtc.DataChannel.Buffer;
+import org.webrtc.DataChannel.State;
 import org.webrtc.IceCandidate;
 import org.webrtc.Logging;
 import org.webrtc.MediaConstraints;
@@ -31,16 +31,14 @@ import org.webrtc.PeerConnection.IceServer;
 import org.webrtc.PeerConnection.Observer;
 import org.webrtc.PeerConnection.SdpSemantics;
 import org.webrtc.PeerConnection.SignalingState;
-import org.webrtc.PeerConnectionFactory.Options;
 import org.webrtc.PeerConnectionFactory;
+import org.webrtc.PeerConnectionFactory.Options;
 import org.webrtc.RtpReceiver;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 import org.webrtc.SessionDescription.Type;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
-import org.webrtc.DataChannel.Buffer;
-import org.webrtc.DataChannel.State;
 import org.webrtc.audio.JavaAudioDeviceModule;
 import org.webrtc.audio.WebRtcAudioRecord;
 import org.webrtc.audio.WebRtcAudioTrack;
@@ -52,7 +50,6 @@ import io.antmedia.enterprise.webrtc.codec.VirtualVideoEncoderFactory;
 import io.antmedia.webrtc.VideoCodec;
 import io.antmedia.webrtc.api.IAudioRecordListener;
 import io.antmedia.webrtc.api.IAudioTrackListener;
-import io.antmedia.websocket.WebSocketConstants;
 
 
 public class WebRTCManager implements Observer, SdpObserver {
@@ -99,6 +96,8 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 	private boolean firstPongMessageReceived = false;
 
+	private boolean tryAgain = false;
+
 	public WebRTCManager(String streamId, Settings settings) 
 	{
 		this.settings = settings;
@@ -112,15 +111,15 @@ public class WebRTCManager implements Observer, SdpObserver {
 		signallingExecutor.scheduleWithFixedDelay(() -> {
 			websocket.sendPingMessage();
 			
-		}, 0, 5, TimeUnit.SECONDS);
+		}, 0, 3, TimeUnit.SECONDS);
 	}
 	
 	public void pongMessageReceived() 
 	{
 		//start process after getting first pong message
-		if (!firstPongMessageReceived) 
+		if (!firstPongMessageReceived || tryAgain ) 
 		{
-			logger.info("First pong message received and starting process for stream:{}", getStreamId());
+			logger.info("Pong message received and starting process for stream:{}", getStreamId());
 			firstPongMessageReceived = true;
 			if(settings.mode == Mode.PUBLISHER) {
 				websocket.sendPublish(getStreamId());
@@ -132,6 +131,11 @@ public class WebRTCManager implements Observer, SdpObserver {
 				websocket.sendJoinTheRoom(getStreamId(), settings.roomId, settings.roomMode);
 			}
 		}
+		tryAgain = false;
+	}
+	
+	public void setTryagain(boolean tryAgain) {
+		this.tryAgain = tryAgain;
 	}
 
 	private void initPeerConnection() {
@@ -157,7 +161,6 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 			if (webRTCClientEmulator instanceof WebRTCPublisher) {
 				//why ARDAMS is used
-				
 			
 				List<String> mediaStreamLabels = Collections.singletonList("ARDAMS");
 
@@ -264,11 +267,9 @@ public class WebRTCManager implements Observer, SdpObserver {
 					.setAudioRecordErrorCallback(null)
 					.setAudioTrackErrorCallback(null)
 					.setAudioRecordListener(new IAudioRecordListener() {
-
 						@Override
 						public void audioRecordStoppped() {
 						}
-
 						@Override
 						public void audioRecordStarted() {
 						}
