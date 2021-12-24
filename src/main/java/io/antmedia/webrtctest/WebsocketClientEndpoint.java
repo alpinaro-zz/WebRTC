@@ -104,7 +104,8 @@ public class WebsocketClientEndpoint {
 			final String streamId = (String) jsonObject.get(WebSocketConstants.STREAM_ID);
 			
 			if ((streamId == null || streamId.isEmpty()) &&
-					!cmd.equals(WebSocketConstants.PONG_COMMAND)) 
+					!cmd.equals(WebSocketConstants.PONG_COMMAND) &&
+					!cmd.equals(WebSocketConstants.ERROR_COMMAND)) 
 			{
 				logger.error("Incoming message:{}" , message);
 				return;
@@ -140,6 +141,7 @@ public class WebsocketClientEndpoint {
 				if (WebSocketConstants.HIGH_RESOURCE_USAGE.equals(definition) || WebSocketConstants.NOT_INITIALIZED_YET.equals(definition)) 
 				{
 					//Set high resource usage to true to let the process try again
+					logger.info("Set try again");
 					webrtcManager.setTryagain(true);
 					
 				}
