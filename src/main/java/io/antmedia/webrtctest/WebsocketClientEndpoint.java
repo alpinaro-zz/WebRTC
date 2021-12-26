@@ -138,7 +138,8 @@ public class WebsocketClientEndpoint {
 				logger.error("Incoming error message:{}" , message);
 				String definition = (String) jsonObject.get(WebSocketConstants.DEFINITION);
 				
-				if (WebSocketConstants.HIGH_RESOURCE_USAGE.equals(definition) || WebSocketConstants.NOT_INITIALIZED_YET.equals(definition)) 
+				if (WebSocketConstants.HIGH_RESOURCE_USAGE.equals(definition) || WebSocketConstants.NOT_INITIALIZED_YET.equals(definition)
+						|| WebSocketConstants.NO_STREAM_EXIST.equals(definition)) 
 				{
 					//Set high resource usage to true to let the process try again
 					logger.info("Set try again");
