@@ -150,7 +150,7 @@ public class WebRTCManager implements Observer, SdpObserver {
 
 			rtcConfig.enableDtlsSrtp = true;
 			rtcConfig.disableIpv6 = true;
-			rtcConfig.sdpSemantics = SdpSemantics.PLAN_B;
+			rtcConfig.sdpSemantics = settings.mainTrack != null ? SdpSemantics.UNIFIED_PLAN : SdpSemantics.PLAN_B;
 
 			//rtcConfig.tcpCandidatePolicy = TcpCandidatePolicy.ENABLED; 
 
