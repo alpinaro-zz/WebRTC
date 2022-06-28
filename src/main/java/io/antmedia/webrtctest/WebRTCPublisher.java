@@ -62,6 +62,8 @@ public class WebRTCPublisher extends WebRTCClientEmulator
 
 	class VideoSender implements Runnable {
 		int lastSentPacket = 0;
+		private long lastPTS;
+		private long offset = 0;
 
 		@Override
 		public void run() {
@@ -71,12 +73,14 @@ public class WebRTCPublisher extends WebRTCClientEmulator
 				FileReader.Frame frame = getReader().videoFrames.get(lastSentPacket++);
 				frame.data.rewind();
 				List<NaluIndex> naluIndices = findNaluIndices(frame.data);
-				manager.getEncoder().setEncodedFrameBuffer(frame.data, frame.isKeyFrame, frame.timeStamp*1000*1000, 0, naluIndices, "0");
+				lastPTS = frame.timeStamp*1000*1000 + offset;
+				manager.getEncoder().setEncodedFrameBuffer(frame.data, frame.isKeyFrame, lastPTS, 0, naluIndices, "0");
 				//VideoFrame fakeFrame = new VideoFrame(i420Buffer, 0, frame.timeStamp*1000*1000);
 				//manager.getVideoObserver().onFrameCaptured(fakeFrame);
 			}
 			else if(loop) {
 					lastSentPacket = 0;
+					offset = lastPTS;
 			}
 			else {
 				WebRTCPublisher.this.stopVideo();
