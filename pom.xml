@@ -84,7 +84,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bytedeco</groupId>
-			<artifactId>ffmpeg-platform-gpl</artifactId>
+			<artifactId>ffmpeg-platform</artifactId>
 			<version>${javacpp.ffmpeg.version}</version>
 			<scope>compile</scope>
 		</dependency>
