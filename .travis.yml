@@ -1,6 +1,6 @@
 language: java
 
-install: mvn install
+install: ./mvnw clean install #mvn install
 
 # sudo: false
 
