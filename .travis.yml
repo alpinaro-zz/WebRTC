@@ -2,7 +2,11 @@ language: java
 
 sudo: false
 
-script: mvn clean verify
+before_install:
+  - mkdir -p $HOME/.m2
+  - cp my-settings.xml $HOME/.m2/settings.xml
+
+script: ./mvnw clean install
 
 notifications:
   email: alper.cinaroglu@gmail.com
