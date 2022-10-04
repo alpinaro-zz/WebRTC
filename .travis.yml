@@ -1,8 +1,10 @@
 language: java
-jdk: oraclejdk11
-sudo: false
-install: true
-script: ./mvnw clean install
+
+install: mvn install
+
+# sudo: false
+
+# script: ./mvnw clean install
 
 notifications:
   email: alper.cinaroglu@gmail.com
