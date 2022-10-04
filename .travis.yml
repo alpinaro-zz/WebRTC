@@ -2,7 +2,7 @@ language: java
 
 sudo: false
 
-script: mvn clean verify
+script: ./mvnw clean install
 
 notifications:
   email: alper.cinaroglu@gmail.com
