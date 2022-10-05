@@ -15,6 +15,35 @@ import static io.restassured.RestAssured.given;
 public class AppTest 
     extends TestCase
 {
+    public void testName() {
+
+        // TODO Check auth
+
+        RequestSpecification specAnt = new RequestSpecBuilder().setBaseUri("https://ovh36.antmedia.io:5443/v2").build();
+        Response response;
+        /*
+        String broadcastId = "myStream";
+
+        specAnt.pathParams("pp1", "broadcasts", "pp2", broadcastId);
+
+        response = given().spec(specAnt).when().get("/{pp1}/{pp2}");
+
+        response.prettyPrint();
+         */
+        // TODO Solve 404 response
+        // TODO Get number of viewers from response
+
+        specAnt.pathParam("pp1", "cpu-status");
+
+        response = given().spec(specAnt).when().get("/{pp1}");
+
+        response.prettyPrint();
+
+        // TODO Solve 404 response
+        // TODO Get cpu usage from response
+
+        // TODO In a while loop, check cpu load from api and when 70% stop & log the number of viewers
+    }
 
     /**
      * Create the test case
