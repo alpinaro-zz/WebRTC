@@ -1,5 +1,5 @@
 CP="webrtc-test.jar:libs/*"
 NATIVE=-Djava.library.path=libs/native
-MAIN=./src.main.java.io.antmedia.Starter
+MAIN=./java.io.antmedia.Starter
 
 java -cp $CP $NATIVE $MAIN $@
