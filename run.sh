@@ -1,5 +1,6 @@
 CP="webrtc-test.jar:libs/*"
 NATIVE=-Djava.library.path=libs/native
-MAIN=./java.io.antmedia.Starter
+MAIN=io.antmedia.Starter
 
+# shellcheck disable=SC2068
 java -cp $CP $NATIVE $MAIN $@
