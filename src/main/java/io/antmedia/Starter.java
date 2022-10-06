@@ -1,7 +1,5 @@
 package io.antmedia;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
